@@ -1,0 +1,17 @@
+[tool.poetry]
+name = "tpn"
+version = "0.1.0"
+description = ""
+authors = ["kei1s <keiichisakamoto0112@gmail.com>"]
+readme = "README.md"
+
+[tool.poetry.dependencies]
+python = "^3.10"
+streamlit = "^1.40.2"
+pydantic = "^2.10.3"
+pytest = "^8.3.4"
+
+
+[build-system]
+requires = ["poetry-core"]
+build-backend = "poetry.core.masonry.api"
