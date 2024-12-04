@@ -113,3 +113,7 @@ def calculate_infusion(patient: Patient, solution: Solution) -> InfusionMix:
         
         logging.info("計算完了")
         return infusion_mix
+    
+    except Exception as e:
+        logging.error(f"計算中にエラーが発生しました: {e}")
+        raise e
