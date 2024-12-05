@@ -27,3 +27,4 @@ class InfusionMix(BaseModel):
     k: float  # mEq/kg/day
     p: float  # mmol/kg/day
     detailed_mix: Optional[Dict[str, float]] = None  # 混合溶液の詳細
+    calculation_steps: Optional[str] = None  # 計算ステップの詳細

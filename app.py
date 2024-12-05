@@ -1,4 +1,3 @@
-# app.py
 import streamlit as st
 import json
 from models import Patient, Solution, InfusionMix
@@ -84,18 +83,9 @@ def main():
             infusion_mix = calculate_infusion(patient, selected_solution)
             logger.debug(f"計算結果: {infusion_mix}")
             
-            # 計算結果の表示
-            st.subheader("計算結果")
-            st.write(f"GIR: {infusion_mix.gir:.2f} mg/kg/min")
-            st.write(f"アミノ酸量: {infusion_mix.amino_acid:.2f} g/kg/day")
-            st.write(f"Na量: {infusion_mix.na:.2f} mEq/kg/day")
-            st.write(f"K量: {infusion_mix.k:.2f} mEq/kg/day")
-            st.write(f"P量: {infusion_mix.p:.2f} mmol/kg/day")
+            # 計算結果をセッションステートに保存
+            st.session_state['infusion_mix'] = infusion_mix
             
-            st.subheader("混合溶液の詳細")
-            for key, value in infusion_mix.detailed_mix.items():
-                st.write(f"{key}: {value:.2f} mL/day")
-                
         except ValidationError as e:
             st.error("入力値に誤りがあります。再度確認してください。")
             logger.error(f"ValidationError: {e}")
@@ -105,6 +95,24 @@ def main():
         except Exception as e:
             st.error("計算中にエラーが発生しました。詳細はログを確認してください。")
             logger.error(f"Unexpected error: {e}")
+    
+    # 計算結果の表示
+    if 'infusion_mix' in st.session_state:
+        infusion_mix = st.session_state['infusion_mix']
+        st.subheader("計算結果")
+        st.write(f"GIR: {infusion_mix.gir:.2f} mg/kg/min")
+        st.write(f"アミノ酸量: {infusion_mix.amino_acid:.2f} g/kg/day")
+        st.write(f"Na量: {infusion_mix.na:.2f} mEq/kg/day")
+        st.write(f"K量: {infusion_mix.k:.2f} mEq/kg/day")
+        st.write(f"P量: {infusion_mix.p:.2f} mmol/kg/day")
+        
+        st.subheader("混合溶液の詳細")
+        for key, value in infusion_mix.detailed_mix.items():
+            st.write(f"{key}: {value:.2f} mL/day")
+        
+        st.subheader("計算ステップの詳細")
+        with st.expander("計算ステップを表示"):
+            st.text(infusion_mix.calculation_steps)
 
 if __name__ == "__main__":
     main()

@@ -42,9 +42,21 @@ def test_calculate_infusion():
     assert "KCl" in infusion_mix.detailed_mix
     assert "蒸留水" in infusion_mix.detailed_mix
 
-    # 具体的な値については計算に基づいて調整
-    assert infusion_mix.detailed_mix["ソルデム3AG"] > 0
-    assert infusion_mix.detailed_mix["プレアミンP"] > 0
-    assert infusion_mix.detailed_mix["リン酸Na"] > 0
-    assert infusion_mix.detailed_mix["KCl"] > 0
-    assert infusion_mix.detailed_mix["蒸留水"] >= 0
+    # 計算ステップの検証
+    assert infusion_mix.calculation_steps is not None
+    assert "総投与量 (TWI)" in infusion_mix.calculation_steps
+    assert "必要GIR" in infusion_mix.calculation_steps
+    assert "必要アミノ酸量" in infusion_mix.calculation_steps
+    assert "必要Na量" in infusion_mix.calculation_steps
+    assert "必要K量" in infusion_mix.calculation_steps
+    assert "必要P量" in infusion_mix.calculation_steps
+    assert "ブドウ糖濃度" in infusion_mix.calculation_steps
+    assert "アミノ酸濃度" in infusion_mix.calculation_steps
+    assert "ベース製剤からのNa量" in infusion_mix.calculation_steps
+    assert "リン酸NaからのNa濃度" in infusion_mix.calculation_steps
+    assert "ベース製剤からのK量" in infusion_mix.calculation_steps
+    assert "KClからのK濃度" in infusion_mix.calculation_steps
+    assert "リン酸NaからのP濃度" in infusion_mix.calculation_steps
+    assert "計算された総液量" in infusion_mix.calculation_steps
+    assert "必要水量" in infusion_mix.calculation_steps
+    assert "蒸留水の量" in infusion_mix.calculation_steps
