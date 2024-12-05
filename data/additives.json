@@ -1,0 +1,29 @@
+[
+    {
+        "name": "リン酸Na",
+        "p_concentration": 10.0,
+        "p_concentration_unit": "mmol/mL",
+        "na_concentration": 15.0,
+        "na_concentration_unit": "mEq/mL"
+    },
+    {
+        "name": "イントラリポス",
+        "fat_concentration": 20.0,
+        "fat_concentration_unit": "g/mL"
+    },
+    {
+        "name": "カルチコール",
+        "ca_concentration": 10.0,
+        "ca_concentration_unit": "mEq/mL"
+    },
+    {
+        "name": "プレアミンP",
+        "na_concentration": 0.076,
+        "na_concentration_unit": "g/mL"
+    },
+    {
+        "name": "KCl",
+        "na_concentration": 1.0,
+        "na_concentration_unit": "mEq/mL"
+    }
+]
