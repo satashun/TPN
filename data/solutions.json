@@ -2,37 +2,61 @@
     {
         "name": "ソルデム3AG",
         "glucose_percentage": 75.0,
+        "glucose_percentage_unit": "%",
         "na": 35,
+        "na_unit": "mEq/L",
         "k": 20,
+        "k_unit": "mEq/L",
         "cl": 35,
+        "cl_unit": "mEq/L",
         "p": 0,
-        "calories": 300
+        "p_unit": "mmol/L",
+        "calories": 300,
+        "calories_unit": "kcal/L"
     },
     {
         "name": "ソルデム3A",
         "glucose_percentage": 4.3,
+        "glucose_percentage_unit": "%",
         "na": 35,
+        "na_unit": "mEq/L",
         "k": 20,
+        "k_unit": "mEq/L",
         "cl": 35,
+        "cl_unit": "mEq/L",
         "p": 0,
-        "calories": 0
+        "p_unit": "mmol/L",
+        "calories": 0,
+        "calories_unit": "kcal/L"
     },
     {
         "name": "ソリタックス",
         "glucose_percentage": 12.5,
+        "glucose_percentage_unit": "%",
         "na": 50,
+        "na_unit": "mEq/L",
         "k": 30,
+        "k_unit": "mEq/L",
         "cl": 48,
+        "cl_unit": "mEq/L",
         "p": 10,
-        "calories": 0
+        "p_unit": "mmol/L",
+        "calories": 0,
+        "calories_unit": "kcal/L"
     },
     {
         "name": "リハビックスK2",
         "glucose_percentage": 21,
+        "glucose_percentage_unit": "%",
         "na": 0,
+        "na_unit": "mEq/L",
         "k": 15,
+        "k_unit": "mEq/L",
         "cl": 0,
+        "cl_unit": "mEq/L",
         "p": 10,
-        "calories": 0
+        "p_unit": "mmol/L",
+        "calories": 0,
+        "calories_unit": "kcal/L"
     }
 ]

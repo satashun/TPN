@@ -177,3 +177,429 @@ KClからのK濃度: 1.0 mEq/mL
 2024-12-05 12:10:27,342 - DEBUG - 配合量の詳細: {'ソルデム3AG': 17.875200000000003, 'プレアミンP': 52.50000000000001, 'リン酸Na': 3.99, 'KCl': 1.637496, '蒸留水': 66.69814666666667}
 2024-12-05 12:10:27,342 - INFO - 計算完了
 2024-12-05 12:10:27,342 - DEBUG - 計算結果: gir=7.0 amino_acid=3.0 na=2.5 k=1.5 p=1.5 detailed_mix={'ソルデム3AG': 17.875200000000003, 'プレアミンP': 52.50000000000001, 'リン酸Na': 3.99, 'KCl': 1.637496, '蒸留水': 66.69814666666667} calculation_steps="1. **総投与量 (TWI)**: 110.0 mL/kg/day × 1.33 kg = **146.30 mL/day**\n\n2. **必要GIR**: 7.0 mg/kg/min × 1.33 kg × 60 min × 24時間 ÷ 1000 = **13.41 g/day**\n3. **必要アミノ酸量**: 3.0 g/kg/day × 1.33 kg = **3.99 g/day**\n4. **必要Na量**: 2.5 mEq/kg/day × 1.33 kg = **3.33 mEq/day**\n5. **必要K量**: 1.5 mEq/kg/day × 1.33 kg = **2.00 mEq/day**\n6. **必要P量**: 1.5 mmol/kg/day × 1.33 kg = **2.00 mmol/day**\n\n7. **ブドウ糖濃度**: 75.0% (=0.75 g/mL)\n   **必要ブドウ糖量**: 13.41 g/day ÷ 0.75 g/mL = **17.88 mL**\n\n8. **アミノ酸濃度**: 0.076 g/mL\n   **必要アミノ酸量**: 3.99 g/day ÷ 0.076 g/mL = **52.50 mL**\n\n9. **ベース製剤からのNa量**: 35.0 mEq/L × 17.88 mL/day ÷ 1000 = **0.63 mEq/day**\n   **追加で必要なNa量**: 3.33 mEq/day - 0.63 mEq/day = **2.70 mEq/day**\n\n10. **リン酸NaからのNa濃度**: 0.75 mEq/mL\n    **必要Na量**: 2.70 mEq/day ÷ 0.75 mEq/mL = **3.60 mL**\n\n11. **ベース製剤からのK量**: 20.0 mEq/L × 17.88 mL/day ÷ 1000 = **0.36 mEq/day**\n    **追加で必要なK量**: 2.00 mEq/day - 0.36 mEq/day = **1.64 mEq/day**\n\n12. **KClからのK濃度**: 1.0 mEq/mL\n    **必要K量**: 1.64 mEq/day ÷ 1.0 mEq/mL = **1.64 mL**\n\n13. **リン酸NaからのP濃度**: 0.5 mmol/mL\n    **必要P量**: 2.00 mmol/day ÷ 0.5 mmol/mL = **3.99 mL**\n\n14. **計算された総液量**: 17.88 + 52.50 + 3.60 + 1.64 + 3.99 = **79.60 mL**\n    **必要水量**: 146.30 mL/day - 79.60 mL/day = **66.70 mL/day**\n    **蒸留水の量**: max(66.70, 0) = **66.70 mL/day**\n\n16. **配合量の詳細**: {'ソルデム3AG': 17.875200000000003, 'プレアミンP': 52.50000000000001, 'リン酸Na': 3.99, 'KCl': 1.637496, '蒸留水': 66.69814666666667}\n"
+2024-12-05 12:16:32,078 - DEBUG - 製剤データのロードに成功しました。
+2024-12-05 12:16:40,120 - DEBUG - 製剤データのロードに成功しました。
+2024-12-05 12:16:40,125 - DEBUG - 患者データ: weight=1.33 twi=110.0 gir=7.0 gir_included=True amino_acid=3.0 amino_acid_included=True na=2.5 na_included=True k=1.5 k_included=True p=1.5 p_included=True
+2024-12-05 12:16:40,125 - DEBUG - 選択された製剤: name='ソルデム3AG' glucose_percentage=75.0 na=35.0 k=20.0 cl=35.0 p=0.0 calories=300.0
+2024-12-05 12:16:40,125 - INFO - 計算開始
+2024-12-05 12:16:40,125 - DEBUG - 患者データ: weight=1.33 twi=110.0 gir=7.0 gir_included=True amino_acid=3.0 amino_acid_included=True na=2.5 na_included=True k=1.5 k_included=True p=1.5 p_included=True
+2024-12-05 12:16:40,125 - DEBUG - 選択された製剤: name='ソルデム3AG' glucose_percentage=75.0 na=35.0 k=20.0 cl=35.0 p=0.0 calories=300.0
+2024-12-05 12:16:40,125 - DEBUG - 計算ステップ: 1. **総投与量 (TWI)**: 110.0 mL/kg/day × 1.33 kg = **146.30 mL/day**
+
+2. **必要GIR**: 7.0 mg/kg/min × 1.33 kg × 60 min × 24時間 ÷ 1000 = **13.41 g/day**
+
+3. **必要アミノ酸量**: 3.0 g/kg/day × 1.33 kg = **3.99 g/day**
+
+4. **必要Na量**: 2.5 mEq/kg/day × 1.33 kg = **3.33 mEq/day**
+
+5. **必要K量**: 1.5 mEq/kg/day × 1.33 kg = **2.00 mEq/day**
+
+6. **必要P量**: 1.5 mmol/kg/day × 1.33 kg = **2.00 mmol/day**
+
+7. **ブドウ糖濃度**: 75.0% (=0.75 g/mL)
+   **必要ブドウ糖量**: 13.41 g/day ÷ 0.75 g/mL = **17.88 mL**
+
+8. **アミノ酸濃度**: 0.076 g/mL
+   **必要アミノ酸量**: 3.99 g/day ÷ 0.076 g/mL = **52.50 mL**
+
+9. **ベース製剤からのNa量**: 35.0 mEq/L × 17.88 mL/day ÷ 1000 = **0.63 mEq/day**
+   **追加で必要なNa量**: 3.33 mEq/day - 0.63 mEq/day = **2.70 mEq/day**
+
+10. **リン酸NaからのNa濃度**: 0.75 mEq/mL
+   **必要Na量**: 2.70 mEq/day ÷ 0.75 mEq/mL = **3.60 mL**
+
+11. **ベース製剤からのK量**: 20.0 mEq/L × 17.88 mL/day ÷ 1000 = **0.36 mEq/day**
+   **追加で必要なK量**: 2.00 mEq/day - 0.36 mEq/day = **1.64 mEq/day**
+
+12. **KClからのK濃度**: 1.0 mEq/mL
+   **必要K量**: 1.64 mEq/day ÷ 1.0 mEq/mL = **1.64 mL**
+
+13. **リン酸NaからのP濃度**: 0.5 mmol/mL
+   **必要P量**: 2.00 mmol/day ÷ 0.5 mmol/mL = **3.99 mL**
+
+14. **計算された総液量**: 17.88 + 52.50 + 3.60 + 1.64 + 3.99 = **79.60 mL**
+   **必要水量**: 146.30 mL/day - 79.60 mL/day = **66.70 mL/day**
+
+7. **蒸留水の量**: max(66.70, 0) = **66.70 mL/day**
+
+8. **配合量の詳細**: {'ソルデム3AG': 17.875200000000003, 'プレアミンP': 52.50000000000001, 'リン酸Na': 3.99, 'KCl': 1.637496, '蒸留水': 66.69814666666667}
+
+2024-12-05 12:16:40,131 - DEBUG - 配合量の詳細: {'ソルデム3AG': 17.875200000000003, 'プレアミンP': 52.50000000000001, 'リン酸Na': 3.99, 'KCl': 1.637496, '蒸留水': 66.69814666666667}
+2024-12-05 12:16:40,131 - INFO - 計算完了
+2024-12-05 12:16:40,131 - DEBUG - 計算結果: gir=7.0 amino_acid=3.0 na=2.5 k=1.5 p=1.5 detailed_mix={'ソルデム3AG': 17.875200000000003, 'プレアミンP': 52.50000000000001, 'リン酸Na': 3.99, 'KCl': 1.637496, '蒸留水': 66.69814666666667} calculation_steps="1. **総投与量 (TWI)**: 110.0 mL/kg/day × 1.33 kg = **146.30 mL/day**\n\n2. **必要GIR**: 7.0 mg/kg/min × 1.33 kg × 60 min × 24時間 ÷ 1000 = **13.41 g/day**\n\n3. **必要アミノ酸量**: 3.0 g/kg/day × 1.33 kg = **3.99 g/day**\n\n4. **必要Na量**: 2.5 mEq/kg/day × 1.33 kg = **3.33 mEq/day**\n\n5. **必要K量**: 1.5 mEq/kg/day × 1.33 kg = **2.00 mEq/day**\n\n6. **必要P量**: 1.5 mmol/kg/day × 1.33 kg = **2.00 mmol/day**\n\n7. **ブドウ糖濃度**: 75.0% (=0.75 g/mL)\n   **必要ブドウ糖量**: 13.41 g/day ÷ 0.75 g/mL = **17.88 mL**\n\n8. **アミノ酸濃度**: 0.076 g/mL\n   **必要アミノ酸量**: 3.99 g/day ÷ 0.076 g/mL = **52.50 mL**\n\n9. **ベース製剤からのNa量**: 35.0 mEq/L × 17.88 mL/day ÷ 1000 = **0.63 mEq/day**\n   **追加で必要なNa量**: 3.33 mEq/day - 0.63 mEq/day = **2.70 mEq/day**\n\n10. **リン酸NaからのNa濃度**: 0.75 mEq/mL\n   **必要Na量**: 2.70 mEq/day ÷ 0.75 mEq/mL = **3.60 mL**\n\n11. **ベース製剤からのK量**: 20.0 mEq/L × 17.88 mL/day ÷ 1000 = **0.36 mEq/day**\n   **追加で必要なK量**: 2.00 mEq/day - 0.36 mEq/day = **1.64 mEq/day**\n\n12. **KClからのK濃度**: 1.0 mEq/mL\n   **必要K量**: 1.64 mEq/day ÷ 1.0 mEq/mL = **1.64 mL**\n\n13. **リン酸NaからのP濃度**: 0.5 mmol/mL\n   **必要P量**: 2.00 mmol/day ÷ 0.5 mmol/mL = **3.99 mL**\n\n14. **計算された総液量**: 17.88 + 52.50 + 3.60 + 1.64 + 3.99 = **79.60 mL**\n   **必要水量**: 146.30 mL/day - 79.60 mL/day = **66.70 mL/day**\n\n7. **蒸留水の量**: max(66.70, 0) = **66.70 mL/day**\n\n8. **配合量の詳細**: {'ソルデム3AG': 17.875200000000003, 'プレアミンP': 52.50000000000001, 'リン酸Na': 3.99, 'KCl': 1.637496, '蒸留水': 66.69814666666667}\n"
+2024-12-05 12:20:07,467 - DEBUG - 製剤データのロードに成功しました。
+2024-12-05 12:20:09,523 - DEBUG - 製剤データのロードに成功しました。
+2024-12-05 12:20:09,529 - DEBUG - 患者データ: weight=1.33 twi=110.0 gir=7.0 gir_included=True amino_acid=3.0 amino_acid_included=True na=2.5 na_included=True k=1.5 k_included=True p=1.5 p_included=True
+2024-12-05 12:20:09,530 - DEBUG - 選択された製剤: name='ソルデム3AG' glucose_percentage=75.0 na=35.0 k=20.0 cl=35.0 p=0.0 calories=300.0
+2024-12-05 12:20:09,530 - INFO - 計算開始
+2024-12-05 12:20:09,530 - DEBUG - 患者データ: weight=1.33 twi=110.0 gir=7.0 gir_included=True amino_acid=3.0 amino_acid_included=True na=2.5 na_included=True k=1.5 k_included=True p=1.5 p_included=True
+2024-12-05 12:20:09,531 - DEBUG - 選択された製剤: name='ソルデム3AG' glucose_percentage=75.0 na=35.0 k=20.0 cl=35.0 p=0.0 calories=300.0
+2024-12-05 12:20:09,531 - DEBUG - 計算ステップ: 1. **総投与量 (TWI)**: 110.0 mL/kg/day × 1.33 kg = **146.30 mL/day**
+
+2. **必要GIR**: 7.0 mg/kg/min × 1.33 kg × 60 min × 24時間 ÷ 1000 = **13.41 g/day**
+
+3. **必要アミノ酸量**: 3.0 g/kg/day × 1.33 kg = **3.99 g/day**
+
+4. **必要Na量**: 2.5 mEq/kg/day × 1.33 kg = **3.33 mEq/day**
+
+5. **必要K量**: 1.5 mEq/kg/day × 1.33 kg = **2.00 mEq/day**
+
+6. **必要P量**: 1.5 mmol/kg/day × 1.33 kg = **2.00 mmol/day**
+
+7. **ブドウ糖濃度**: 75.0% (=0.75 g/mL)
+   **必要ブドウ糖量**: 13.41 g/day ÷ 0.75 g/mL = **17.88 mL**
+
+8. **アミノ酸濃度**: 0.076 g/mL
+   **必要アミノ酸量**: 3.99 g/day ÷ 0.076 g/mL = **52.50 mL**
+
+9. **ベース製剤からのNa量**: 35.0 mEq/L × 17.88 mL/day ÷ 1000 = **0.63 mEq/day**
+   **追加で必要なNa量**: 3.33 mEq/day - 0.63 mEq/day = **2.70 mEq/day**
+
+10. **リン酸NaからのNa濃度**: 0.75 mEq/mL
+   **必要Na量**: 2.70 mEq/day ÷ 0.75 mEq/mL = **3.60 mL**
+
+11. **ベース製剤からのK量**: 20.0 mEq/L × 17.88 mL/day ÷ 1000 = **0.36 mEq/day**
+   **追加で必要なK量**: 2.00 mEq/day - 0.36 mEq/day = **1.64 mEq/day**
+
+12. **KClからのK濃度**: 1.0 mEq/mL
+   **必要K量**: 1.64 mEq/day ÷ 1.0 mEq/mL = **1.64 mL**
+
+13. **リン酸NaからのP濃度**: 0.5 mmol/mL
+   **必要P量**: 2.00 mmol/day ÷ 0.5 mmol/mL = **3.99 mL**
+
+14. **計算された総液量**: 17.88 + 52.50 + 3.60 + 1.64 + 3.99 = **79.60 mL**
+   **必要水量**: 146.30 mL/day - 79.60 mL/day = **66.70 mL/day**
+
+7. **蒸留水の量**: max(66.70, 0) = **66.70 mL/day**
+
+8. **配合量の詳細**: {'ソルデム3AG': 17.875200000000003, 'プレアミンP': 52.50000000000001, 'リン酸Na': 3.99, 'KCl': 1.637496, '蒸留水': 66.69814666666667}
+
+2024-12-05 12:20:09,533 - DEBUG - 配合量の詳細: {'ソルデム3AG': 17.875200000000003, 'プレアミンP': 52.50000000000001, 'リン酸Na': 3.99, 'KCl': 1.637496, '蒸留水': 66.69814666666667}
+2024-12-05 12:20:09,533 - INFO - 計算完了
+2024-12-05 12:20:09,533 - DEBUG - 計算結果: gir=7.0 amino_acid=3.0 na=2.5 k=1.5 p=1.5 detailed_mix={'ソルデム3AG': 17.875200000000003, 'プレアミンP': 52.50000000000001, 'リン酸Na': 3.99, 'KCl': 1.637496, '蒸留水': 66.69814666666667} calculation_steps="1. **総投与量 (TWI)**: 110.0 mL/kg/day × 1.33 kg = **146.30 mL/day**\n\n2. **必要GIR**: 7.0 mg/kg/min × 1.33 kg × 60 min × 24時間 ÷ 1000 = **13.41 g/day**\n\n3. **必要アミノ酸量**: 3.0 g/kg/day × 1.33 kg = **3.99 g/day**\n\n4. **必要Na量**: 2.5 mEq/kg/day × 1.33 kg = **3.33 mEq/day**\n\n5. **必要K量**: 1.5 mEq/kg/day × 1.33 kg = **2.00 mEq/day**\n\n6. **必要P量**: 1.5 mmol/kg/day × 1.33 kg = **2.00 mmol/day**\n\n7. **ブドウ糖濃度**: 75.0% (=0.75 g/mL)\n   **必要ブドウ糖量**: 13.41 g/day ÷ 0.75 g/mL = **17.88 mL**\n\n8. **アミノ酸濃度**: 0.076 g/mL\n   **必要アミノ酸量**: 3.99 g/day ÷ 0.076 g/mL = **52.50 mL**\n\n9. **ベース製剤からのNa量**: 35.0 mEq/L × 17.88 mL/day ÷ 1000 = **0.63 mEq/day**\n   **追加で必要なNa量**: 3.33 mEq/day - 0.63 mEq/day = **2.70 mEq/day**\n\n10. **リン酸NaからのNa濃度**: 0.75 mEq/mL\n   **必要Na量**: 2.70 mEq/day ÷ 0.75 mEq/mL = **3.60 mL**\n\n11. **ベース製剤からのK量**: 20.0 mEq/L × 17.88 mL/day ÷ 1000 = **0.36 mEq/day**\n   **追加で必要なK量**: 2.00 mEq/day - 0.36 mEq/day = **1.64 mEq/day**\n\n12. **KClからのK濃度**: 1.0 mEq/mL\n   **必要K量**: 1.64 mEq/day ÷ 1.0 mEq/mL = **1.64 mL**\n\n13. **リン酸NaからのP濃度**: 0.5 mmol/mL\n   **必要P量**: 2.00 mmol/day ÷ 0.5 mmol/mL = **3.99 mL**\n\n14. **計算された総液量**: 17.88 + 52.50 + 3.60 + 1.64 + 3.99 = **79.60 mL**\n   **必要水量**: 146.30 mL/day - 79.60 mL/day = **66.70 mL/day**\n\n7. **蒸留水の量**: max(66.70, 0) = **66.70 mL/day**\n\n8. **配合量の詳細**: {'ソルデム3AG': 17.875200000000003, 'プレアミンP': 52.50000000000001, 'リン酸Na': 3.99, 'KCl': 1.637496, '蒸留水': 66.69814666666667}\n"
+2024-12-05 12:26:25,379 - DEBUG - 製剤データのロードに成功しました。
+2024-12-05 12:26:27,957 - DEBUG - 製剤データのロードに成功しました。
+2024-12-05 12:26:27,962 - DEBUG - 患者データ: weight=1.33 twi=110.0 gir=7.0 gir_included=True amino_acid=3.0 amino_acid_included=True na=2.5 na_included=True k=1.5 k_included=True p=1.5 p_included=True
+2024-12-05 12:26:27,962 - DEBUG - 選択された製剤: name='ソルデム3AG' glucose_percentage=75.0 na=35.0 k=20.0 cl=35.0 p=0.0 calories=300.0
+2024-12-05 12:26:27,962 - INFO - 計算開始
+2024-12-05 12:26:27,964 - DEBUG - 患者データ: weight=1.33 twi=110.0 gir=7.0 gir_included=True amino_acid=3.0 amino_acid_included=True na=2.5 na_included=True k=1.5 k_included=True p=1.5 p_included=True
+2024-12-05 12:26:27,964 - DEBUG - 選択された製剤: name='ソルデム3AG' glucose_percentage=75.0 na=35.0 k=20.0 cl=35.0 p=0.0 calories=300.0
+2024-12-05 12:26:27,964 - DEBUG - 計算ステップ: 1. **総投与量 (TWI)**: 110.0 mL/kg/day × 1.33 kg = **146.30 mL/day**
+
+2. **必要GIR**: $7.0 \, 	ext{mg/kg/min} 	imes 1.33 \, 	ext{kg} 	imes 60 \, 	ext{min} 	imes 24 \, 	ext{hours} \div 1000 = **13.41 \, 	ext{g/day}**$
+
+3. **必要アミノ酸量**: $3.0 \, 	ext{g/kg/day} 	imes 1.33 \, 	ext{kg} = **3.99 \, 	ext{g/day}**$
+
+4. **必要Na量**: $2.5 \, 	ext{mEq/kg/day} 	imes 1.33 \, 	ext{kg} = **3.33 \, 	ext{mEq/day}**$
+
+5. **必要K量**: $1.5 \, 	ext{mEq/kg/day} 	imes 1.33 \, 	ext{kg} = **2.00 \, 	ext{mEq/day}**$
+
+6. **必要P量**: $1.5 \, 	ext{mmol/kg/day} 	imes 1.33 \, 	ext{kg} = **2.00 \, 	ext{mmol/day}**$
+
+7. **ブドウ糖濃度**: $75.0\% \, (= 0.75 \, 	ext{g/mL})$
+   **必要ブドウ糖量**: $13.41 \, 	ext{g/day} \div 0.75 \, 	ext{g/mL} = **17.88 \, 	ext{mL}**$
+
+8. **アミノ酸濃度**: $0.076 \, 	ext{g/mL}$
+   **必要アミノ酸量**: $3.99 \, 	ext{g/day} \div 0.076 \, 	ext{g/mL} = **52.50 \, 	ext{mL}**$
+
+9. **ベース製剤からのNa量**: $35.0 \, 	ext{mEq/L} 	imes 17.88 \, 	ext{mL/day} \div 1000 = **0.63 \, 	ext{mEq/day}**$
+   **追加で必要なNa量**: $3.33 \, 	ext{mEq/day} - 0.63 \, 	ext{mEq/day} = **2.70 \, 	ext{mEq/day}**$
+
+10. **リン酸NaからのNa濃度**: $0.75 \, 	ext{mEq/mL}$
+   **必要Na量**: $2.70 \, 	ext{mEq/day} \div 0.75 \, 	ext{mEq/mL} = **3.60 \, 	ext{mL}**$
+
+11. **ベース製剤からのK量**: $20.0 \, 	ext{mEq/L} 	imes 17.88 \, 	ext{mL/day} \div 1000 = **0.36 \, 	ext{mEq/day}**$
+   **追加で必要なK量**: $2.00 \, 	ext{mEq/day} - 0.36 \, 	ext{mEq/day} = **1.64 \, 	ext{mEq/day}**$
+
+12. **KClからのK濃度**: $1.0 \, 	ext{mEq/mL}$
+   **必要K量**: $1.64 \, 	ext{mEq/day} \div 1.0 \, 	ext{mEq/mL} = **1.64 \, 	ext{mL}**$
+
+13. **リン酸NaからのP濃度**: $0.5 \, 	ext{mmol/mL}$
+   **必要P量**: $2.00 \, 	ext{mmol/day} \div 0.5 \, 	ext{mmol/mL} = **3.99 \, 	ext{mL}**$
+
+14. **計算された総液量**: $17.88 + 52.50 + 3.60 + 1.64 + 3.99 = **79.60 \, 	ext{mL}**$
+   **必要水量**: $146.30 \, 	ext{mL/day} - 79.60 \, 	ext{mL/day} = **66.70 \, 	ext{mL/day}**$
+
+15. **蒸留水の量**: max(66.70, 0) = **66.70 \, 	ext{mL/day}**$
+
+16. **配合量の詳細**: {'ソルデム3AG': 17.875200000000003, 'プレアミンP': 52.50000000000001, 'リン酸Na': 3.99, 'KCl': 1.637496, '蒸留水': 66.69814666666667}
+
+2024-12-05 12:26:27,965 - DEBUG - 配合量の詳細: {'ソルデム3AG': 17.875200000000003, 'プレアミンP': 52.50000000000001, 'リン酸Na': 3.99, 'KCl': 1.637496, '蒸留水': 66.69814666666667}
+2024-12-05 12:26:27,966 - INFO - 計算完了
+2024-12-05 12:26:27,966 - DEBUG - 計算結果: gir=7.0 amino_acid=3.0 na=2.5 k=1.5 p=1.5 detailed_mix={'ソルデム3AG': 17.875200000000003, 'プレアミンP': 52.50000000000001, 'リン酸Na': 3.99, 'KCl': 1.637496, '蒸留水': 66.69814666666667} calculation_steps="1. **総投与量 (TWI)**: 110.0 mL/kg/day × 1.33 kg = **146.30 mL/day**\n\n2. **必要GIR**: $7.0 \\, \text{mg/kg/min} \times 1.33 \\, \text{kg} \times 60 \\, \text{min} \times 24 \\, \text{hours} \\div 1000 = **13.41 \\, \text{g/day}**$\n\n3. **必要アミノ酸量**: $3.0 \\, \text{g/kg/day} \times 1.33 \\, \text{kg} = **3.99 \\, \text{g/day}**$\n\n4. **必要Na量**: $2.5 \\, \text{mEq/kg/day} \times 1.33 \\, \text{kg} = **3.33 \\, \text{mEq/day}**$\n\n5. **必要K量**: $1.5 \\, \text{mEq/kg/day} \times 1.33 \\, \text{kg} = **2.00 \\, \text{mEq/day}**$\n\n6. **必要P量**: $1.5 \\, \text{mmol/kg/day} \times 1.33 \\, \text{kg} = **2.00 \\, \text{mmol/day}**$\n\n7. **ブドウ糖濃度**: $75.0\\% \\, (= 0.75 \\, \text{g/mL})$\n   **必要ブドウ糖量**: $13.41 \\, \text{g/day} \\div 0.75 \\, \text{g/mL} = **17.88 \\, \text{mL}**$\n\n8. **アミノ酸濃度**: $0.076 \\, \text{g/mL}$\n   **必要アミノ酸量**: $3.99 \\, \text{g/day} \\div 0.076 \\, \text{g/mL} = **52.50 \\, \text{mL}**$\n\n9. **ベース製剤からのNa量**: $35.0 \\, \text{mEq/L} \times 17.88 \\, \text{mL/day} \\div 1000 = **0.63 \\, \text{mEq/day}**$\n   **追加で必要なNa量**: $3.33 \\, \text{mEq/day} - 0.63 \\, \text{mEq/day} = **2.70 \\, \text{mEq/day}**$\n\n10. **リン酸NaからのNa濃度**: $0.75 \\, \text{mEq/mL}$\n   **必要Na量**: $2.70 \\, \text{mEq/day} \\div 0.75 \\, \text{mEq/mL} = **3.60 \\, \text{mL}**$\n\n11. **ベース製剤からのK量**: $20.0 \\, \text{mEq/L} \times 17.88 \\, \text{mL/day} \\div 1000 = **0.36 \\, \text{mEq/day}**$\n   **追加で必要なK量**: $2.00 \\, \text{mEq/day} - 0.36 \\, \text{mEq/day} = **1.64 \\, \text{mEq/day}**$\n\n12. **KClからのK濃度**: $1.0 \\, \text{mEq/mL}$\n   **必要K量**: $1.64 \\, \text{mEq/day} \\div 1.0 \\, \text{mEq/mL} = **1.64 \\, \text{mL}**$\n\n13. **リン酸NaからのP濃度**: $0.5 \\, \text{mmol/mL}$\n   **必要P量**: $2.00 \\, \text{mmol/day} \\div 0.5 \\, \text{mmol/mL} = **3.99 \\, \text{mL}**$\n\n14. **計算された総液量**: $17.88 + 52.50 + 3.60 + 1.64 + 3.99 = **79.60 \\, \text{mL}**$\n   **必要水量**: $146.30 \\, \text{mL/day} - 79.60 \\, \text{mL/day} = **66.70 \\, \text{mL/day}**$\n\n15. **蒸留水の量**: max(66.70, 0) = **66.70 \\, \text{mL/day}**$\n\n16. **配合量の詳細**: {'ソルデム3AG': 17.875200000000003, 'プレアミンP': 52.50000000000001, 'リン酸Na': 3.99, 'KCl': 1.637496, '蒸留水': 66.69814666666667}\n"
+2024-12-05 12:29:15,135 - DEBUG - 製剤データのロードに成功しました。
+2024-12-05 12:29:16,686 - DEBUG - 製剤データのロードに成功しました。
+2024-12-05 12:29:16,691 - DEBUG - 患者データ: weight=1.33 twi=110.0 gir=7.0 gir_included=True amino_acid=3.0 amino_acid_included=True na=2.5 na_included=True k=1.5 k_included=True p=1.5 p_included=True
+2024-12-05 12:29:16,692 - DEBUG - 選択された製剤: name='ソルデム3AG' glucose_percentage=75.0 na=35.0 k=20.0 cl=35.0 p=0.0 calories=300.0
+2024-12-05 12:29:16,693 - INFO - 計算開始
+2024-12-05 12:29:16,693 - DEBUG - 患者データ: weight=1.33 twi=110.0 gir=7.0 gir_included=True amino_acid=3.0 amino_acid_included=True na=2.5 na_included=True k=1.5 k_included=True p=1.5 p_included=True
+2024-12-05 12:29:16,693 - DEBUG - 選択された製剤: name='ソルデム3AG' glucose_percentage=75.0 na=35.0 k=20.0 cl=35.0 p=0.0 calories=300.0
+2024-12-05 12:29:16,694 - DEBUG - 計算ステップ: 1. **総投与量 (TWI)**: 110.0 mL/kg/day × 1.33 kg = **146.30 mL/day**
+
+2. **必要GIR**: 7.0 mg/kg/min × 1.33 kg × 60 min × 24時間 ÷ 1000 = **13.41 g/day**
+
+3. **必要アミノ酸量**: 3.0 g/kg/day × 1.33 kg = **3.99 g/day**
+
+4. **必要Na量**: 2.5 mEq/kg/day × 1.33 kg = **3.33 mEq/day**
+
+5. **必要K量**: 1.5 mEq/kg/day × 1.33 kg = **2.00 mEq/day**
+
+6. **必要P量**: 1.5 mmol/kg/day × 1.33 kg = **2.00 mmol/day**
+
+7. **ブドウ糖濃度**: 75.0% (= 0.75 g/mL)
+   **必要ブドウ糖量**: 13.41 g/day ÷ 0.75 g/mL = **17.88 mL**
+
+8. **アミノ酸濃度**: 0.076 g/mL
+   **必要アミノ酸量**: 3.99 g/day ÷ 0.076 g/mL = **52.50 mL**
+
+9. **ベース製剤からのNa量**: 35.0 mEq/L × 17.88 mL/day ÷ 1000 = **0.63 mEq/day**
+   **追加で必要なNa量**: 3.33 mEq/day - 0.63 mEq/day = **2.70 mEq/day**
+
+10. **リン酸NaからのNa濃度**: 0.75 mEq/mL
+   **必要Na量**: 2.70 mEq/day ÷ 0.75 mEq/mL = **3.60 mL**
+
+11. **ベース製剤からのK量**: 20.0 mEq/L × 17.88 mL/day ÷ 1000 = **0.36 mEq/day**
+   **追加で必要なK量**: 2.00 mEq/day - 0.36 mEq/day = **1.64 mEq/day**
+
+12. **KClからのK濃度**: 1.0 mEq/mL
+   **必要K量**: 1.64 mEq/day ÷ 1.0 mEq/mL = **1.64 mL**
+
+13. **リン酸NaからのP濃度**: 0.5 mmol/mL
+   **必要P量**: 2.00 mmol/day ÷ 0.5 mmol/mL = **3.99 mL**
+
+14. **計算された総液量**: 17.88 + 52.50 + 3.60 + 1.64 + 3.99 = **79.60 mL**
+   **必要水量**: 146.30 mL/day - 79.60 mL/day = **66.70 mL/day**
+
+15. **蒸留水の量**: max(66.70, 0) = **66.70 mL/day**
+
+16. **配合量の詳細**: {'ソルデム3AG': 17.875200000000003, 'プレアミンP': 52.50000000000001, 'リン酸Na': 3.99, 'KCl': 1.637496, '蒸留水': 66.69814666666667}
+
+2024-12-05 12:29:16,698 - DEBUG - 配合量の詳細: {'ソルデム3AG': 17.875200000000003, 'プレアミンP': 52.50000000000001, 'リン酸Na': 3.99, 'KCl': 1.637496, '蒸留水': 66.69814666666667}
+2024-12-05 12:29:16,698 - INFO - 計算完了
+2024-12-05 12:29:16,698 - DEBUG - 計算結果: gir=7.0 amino_acid=3.0 na=2.5 k=1.5 p=1.5 detailed_mix={'ソルデム3AG': 17.875200000000003, 'プレアミンP': 52.50000000000001, 'リン酸Na': 3.99, 'KCl': 1.637496, '蒸留水': 66.69814666666667} calculation_steps="1. **総投与量 (TWI)**: 110.0 mL/kg/day × 1.33 kg = **146.30 mL/day**\n\n2. **必要GIR**: 7.0 mg/kg/min × 1.33 kg × 60 min × 24時間 ÷ 1000 = **13.41 g/day**\n\n3. **必要アミノ酸量**: 3.0 g/kg/day × 1.33 kg = **3.99 g/day**\n\n4. **必要Na量**: 2.5 mEq/kg/day × 1.33 kg = **3.33 mEq/day**\n\n5. **必要K量**: 1.5 mEq/kg/day × 1.33 kg = **2.00 mEq/day**\n\n6. **必要P量**: 1.5 mmol/kg/day × 1.33 kg = **2.00 mmol/day**\n\n7. **ブドウ糖濃度**: 75.0% (= 0.75 g/mL)\n   **必要ブドウ糖量**: 13.41 g/day ÷ 0.75 g/mL = **17.88 mL**\n\n8. **アミノ酸濃度**: 0.076 g/mL\n   **必要アミノ酸量**: 3.99 g/day ÷ 0.076 g/mL = **52.50 mL**\n\n9. **ベース製剤からのNa量**: 35.0 mEq/L × 17.88 mL/day ÷ 1000 = **0.63 mEq/day**\n   **追加で必要なNa量**: 3.33 mEq/day - 0.63 mEq/day = **2.70 mEq/day**\n\n10. **リン酸NaからのNa濃度**: 0.75 mEq/mL\n   **必要Na量**: 2.70 mEq/day ÷ 0.75 mEq/mL = **3.60 mL**\n\n11. **ベース製剤からのK量**: 20.0 mEq/L × 17.88 mL/day ÷ 1000 = **0.36 mEq/day**\n   **追加で必要なK量**: 2.00 mEq/day - 0.36 mEq/day = **1.64 mEq/day**\n\n12. **KClからのK濃度**: 1.0 mEq/mL\n   **必要K量**: 1.64 mEq/day ÷ 1.0 mEq/mL = **1.64 mL**\n\n13. **リン酸NaからのP濃度**: 0.5 mmol/mL\n   **必要P量**: 2.00 mmol/day ÷ 0.5 mmol/mL = **3.99 mL**\n\n14. **計算された総液量**: 17.88 + 52.50 + 3.60 + 1.64 + 3.99 = **79.60 mL**\n   **必要水量**: 146.30 mL/day - 79.60 mL/day = **66.70 mL/day**\n\n15. **蒸留水の量**: max(66.70, 0) = **66.70 mL/day**\n\n16. **配合量の詳細**: {'ソルデム3AG': 17.875200000000003, 'プレアミンP': 52.50000000000001, 'リン酸Na': 3.99, 'KCl': 1.637496, '蒸留水': 66.69814666666667}\n"
+2024-12-05 12:34:15,995 - DEBUG - 製剤データのロードに成功しました。
+2024-12-05 12:34:20,638 - DEBUG - 製剤データのロードに成功しました。
+2024-12-05 12:34:20,643 - DEBUG - 患者データ: weight=1.33 twi=110.0 gir=7.0 gir_included=True amino_acid=3.0 amino_acid_included=True na=2.5 na_included=True k=1.5 k_included=True p=1.5 p_included=True
+2024-12-05 12:34:20,644 - DEBUG - 選択された製剤: name='ソルデム3AG' glucose_percentage=75.0 na=35.0 k=20.0 cl=35.0 p=0.0 calories=300.0
+2024-12-05 12:34:20,644 - INFO - 計算開始
+2024-12-05 12:34:20,644 - DEBUG - 患者データ: weight=1.33 twi=110.0 gir=7.0 gir_included=True amino_acid=3.0 amino_acid_included=True na=2.5 na_included=True k=1.5 k_included=True p=1.5 p_included=True
+2024-12-05 12:34:20,645 - DEBUG - 選択された製剤: name='ソルデム3AG' glucose_percentage=75.0 na=35.0 k=20.0 cl=35.0 p=0.0 calories=300.0
+2024-12-05 12:34:20,645 - DEBUG - 計算ステップ: 1. **総投与量 (TWI)**
+    - 110.0 mL/kg/day × 1.33 kg = **146.30 mL/day**
+
+2. **必要GIR**
+    - 7.0 mg/kg/min × 1.33 kg × 60 min × 24時間 ÷ 1000 = **13.41 g/day**
+
+3. **必要アミノ酸量**
+    - 3.0 g/kg/day × 1.33 kg = **3.99 g/day**
+
+4. **必要Na量**
+    - 2.5 mEq/kg/day × 1.33 kg = **3.33 mEq/day**
+
+5. **必要K量**
+    - 1.5 mEq/kg/day × 1.33 kg = **2.00 mEq/day**
+
+6. **必要P量**
+    - 1.5 mmol/kg/day × 1.33 kg = **2.00 mmol/day**
+
+7. **ブドウ糖計算**
+    - ブドウ糖濃度: 75.0% (= 0.75 g/mL)
+    - 必要ブドウ糖量: 13.41 g/day ÷ 0.75 g/mL = **17.88 mL**
+
+8. **アミノ酸計算**
+    - アミノ酸濃度: 0.076 g/mL
+    - 必要アミノ酸量: 3.99 g/day ÷ 0.076 g/mL = **52.50 mL**
+
+9. **Na量計算**
+    - ベース製剤からのNa量: 35.0 mEq/L × 17.88 mL/day ÷ 1000 = **0.63 mEq/day**
+    - 追加で必要なNa量: 3.33 mEq/day - 0.63 mEq/day = **2.70 mEq/day**
+
+10. **リン酸NaからのNa計算**
+    - Na濃度: 0.75 mEq/mL
+    - 必要Na量: 2.70 mEq/day ÷ 0.75 mEq/mL = **3.60 mL**
+
+11. **K量計算**
+    - ベース製剤からのK量: 20.0 mEq/L × 17.88 mL/day ÷ 1000 = **0.36 mEq/day**
+    - 追加で必要なK量: 2.00 mEq/day - 0.36 mEq/day = **1.64 mEq/day**
+
+12. **KClからのK計算**
+    - K濃度: 1.0 mEq/mL
+    - 必要K量: 1.64 mEq/day ÷ 1.0 mEq/mL = **1.64 mL**
+
+13. **リン酸NaからのP計算**
+    - P濃度: 0.5 mmol/mL
+    - 必要P量: 2.00 mmol/day ÷ 0.5 mmol/mL = **3.99 mL**
+
+14. **計算された総液量**
+    - 17.88 + 52.50 + 3.60 + 1.64 + 3.99 = **79.60 mL**
+    - **必要水量**: 146.30 mL/day - 79.60 mL/day = **66.70 mL/day**
+
+15. **蒸留水の量**
+    - max(66.70, 0) = **66.70 mL/day**
+
+16. **配合量の詳細**
+    - ソルデム3AG: 17.88 mL/day
+    - プレアミンP: 52.50 mL/day
+    - リン酸Na: 3.99 mL/day
+    - KCl: 1.64 mL/day
+    - 蒸留水: 66.70 mL/day
+
+2024-12-05 12:34:20,645 - DEBUG - 配合量の詳細: {'ソルデム3AG': 17.875200000000003, 'プレアミンP': 52.50000000000001, 'リン酸Na': 3.99, 'KCl': 1.637496, '蒸留水': 66.69814666666667}
+2024-12-05 12:34:20,645 - INFO - 計算完了
+2024-12-05 12:34:20,645 - DEBUG - 計算結果: gir=7.0 amino_acid=3.0 na=2.5 k=1.5 p=1.5 detailed_mix={'ソルデム3AG': 17.875200000000003, 'プレアミンP': 52.50000000000001, 'リン酸Na': 3.99, 'KCl': 1.637496, '蒸留水': 66.69814666666667} calculation_steps='1. **総投与量 (TWI)**\n    - 110.0 mL/kg/day × 1.33 kg = **146.30 mL/day**\n\n2. **必要GIR**\n    - 7.0 mg/kg/min × 1.33 kg × 60 min × 24時間 ÷ 1000 = **13.41 g/day**\n\n3. **必要アミノ酸量**\n    - 3.0 g/kg/day × 1.33 kg = **3.99 g/day**\n\n4. **必要Na量**\n    - 2.5 mEq/kg/day × 1.33 kg = **3.33 mEq/day**\n\n5. **必要K量**\n    - 1.5 mEq/kg/day × 1.33 kg = **2.00 mEq/day**\n\n6. **必要P量**\n    - 1.5 mmol/kg/day × 1.33 kg = **2.00 mmol/day**\n\n7. **ブドウ糖計算**\n    - ブドウ糖濃度: 75.0% (= 0.75 g/mL)\n    - 必要ブドウ糖量: 13.41 g/day ÷ 0.75 g/mL = **17.88 mL**\n\n8. **アミノ酸計算**\n    - アミノ酸濃度: 0.076 g/mL\n    - 必要アミノ酸量: 3.99 g/day ÷ 0.076 g/mL = **52.50 mL**\n\n9. **Na量計算**\n    - ベース製剤からのNa量: 35.0 mEq/L × 17.88 mL/day ÷ 1000 = **0.63 mEq/day**\n    - 追加で必要なNa量: 3.33 mEq/day - 0.63 mEq/day = **2.70 mEq/day**\n\n10. **リン酸NaからのNa計算**\n    - Na濃度: 0.75 mEq/mL\n    - 必要Na量: 2.70 mEq/day ÷ 0.75 mEq/mL = **3.60 mL**\n\n11. **K量計算**\n    - ベース製剤からのK量: 20.0 mEq/L × 17.88 mL/day ÷ 1000 = **0.36 mEq/day**\n    - 追加で必要なK量: 2.00 mEq/day - 0.36 mEq/day = **1.64 mEq/day**\n\n12. **KClからのK計算**\n    - K濃度: 1.0 mEq/mL\n    - 必要K量: 1.64 mEq/day ÷ 1.0 mEq/mL = **1.64 mL**\n\n13. **リン酸NaからのP計算**\n    - P濃度: 0.5 mmol/mL\n    - 必要P量: 2.00 mmol/day ÷ 0.5 mmol/mL = **3.99 mL**\n\n14. **計算された総液量**\n    - 17.88 + 52.50 + 3.60 + 1.64 + 3.99 = **79.60 mL**\n    - **必要水量**: 146.30 mL/day - 79.60 mL/day = **66.70 mL/day**\n\n15. **蒸留水の量**\n    - max(66.70, 0) = **66.70 mL/day**\n\n16. **配合量の詳細**\n    - ソルデム3AG: 17.88 mL/day\n    - プレアミンP: 52.50 mL/day\n    - リン酸Na: 3.99 mL/day\n    - KCl: 1.64 mL/day\n    - 蒸留水: 66.70 mL/day\n'
+2024-12-05 12:34:55,087 - DEBUG - 製剤データのロードに成功しました。
+2024-12-05 12:34:55,091 - DEBUG - 患者データ: weight=1.33 twi=110.0 gir=7.0 gir_included=True amino_acid=3.0 amino_acid_included=True na=2.5 na_included=True k=1.5 k_included=True p=1.5 p_included=True
+2024-12-05 12:34:55,091 - DEBUG - 選択された製剤: name='ソリタックス' glucose_percentage=12.5 na=50.0 k=30.0 cl=48.0 p=10.0 calories=0.0
+2024-12-05 12:34:55,091 - INFO - 計算開始
+2024-12-05 12:34:55,091 - DEBUG - 患者データ: weight=1.33 twi=110.0 gir=7.0 gir_included=True amino_acid=3.0 amino_acid_included=True na=2.5 na_included=True k=1.5 k_included=True p=1.5 p_included=True
+2024-12-05 12:34:55,091 - DEBUG - 選択された製剤: name='ソリタックス' glucose_percentage=12.5 na=50.0 k=30.0 cl=48.0 p=10.0 calories=0.0
+2024-12-05 12:34:55,091 - ERROR - 計算中にエラーが発生しました: 総液量がTWIを超過しています。製剤の配合を見直してください。
+2024-12-05 12:34:55,092 - ERROR - ValueError: 総液量がTWIを超過しています。製剤の配合を見直してください。
+2024-12-05 12:34:58,343 - DEBUG - 製剤データのロードに成功しました。
+2024-12-05 12:34:58,347 - DEBUG - 患者データ: weight=1.33 twi=110.0 gir=7.0 gir_included=True amino_acid=3.0 amino_acid_included=True na=2.5 na_included=True k=1.5 k_included=True p=1.5 p_included=True
+2024-12-05 12:34:58,347 - DEBUG - 選択された製剤: name='ソリタックス' glucose_percentage=12.5 na=50.0 k=30.0 cl=48.0 p=10.0 calories=0.0
+2024-12-05 12:34:58,347 - INFO - 計算開始
+2024-12-05 12:34:58,348 - DEBUG - 患者データ: weight=1.33 twi=110.0 gir=7.0 gir_included=True amino_acid=3.0 amino_acid_included=True na=2.5 na_included=True k=1.5 k_included=True p=1.5 p_included=True
+2024-12-05 12:34:58,348 - DEBUG - 選択された製剤: name='ソリタックス' glucose_percentage=12.5 na=50.0 k=30.0 cl=48.0 p=10.0 calories=0.0
+2024-12-05 12:34:58,348 - ERROR - 計算中にエラーが発生しました: 総液量がTWIを超過しています。製剤の配合を見直してください。
+2024-12-05 12:34:58,349 - ERROR - ValueError: 総液量がTWIを超過しています。製剤の配合を見直してください。
+2024-12-05 12:35:00,468 - DEBUG - 製剤データのロードに成功しました。
+2024-12-05 12:35:02,748 - DEBUG - 製剤データのロードに成功しました。
+2024-12-05 12:35:02,754 - DEBUG - 患者データ: weight=1.33 twi=110.0 gir=7.0 gir_included=True amino_acid=3.0 amino_acid_included=True na=2.5 na_included=True k=1.5 k_included=True p=1.5 p_included=True
+2024-12-05 12:35:02,754 - DEBUG - 選択された製剤: name='ソリタックス' glucose_percentage=12.5 na=50.0 k=30.0 cl=48.0 p=10.0 calories=0.0
+2024-12-05 12:35:02,755 - INFO - 計算開始
+2024-12-05 12:35:02,755 - DEBUG - 患者データ: weight=1.33 twi=110.0 gir=7.0 gir_included=True amino_acid=3.0 amino_acid_included=True na=2.5 na_included=True k=1.5 k_included=True p=1.5 p_included=True
+2024-12-05 12:35:02,755 - DEBUG - 選択された製剤: name='ソリタックス' glucose_percentage=12.5 na=50.0 k=30.0 cl=48.0 p=10.0 calories=0.0
+2024-12-05 12:35:02,756 - ERROR - 計算中にエラーが発生しました: 総液量がTWIを超過しています。製剤の配合を見直してください。
+2024-12-05 12:35:02,756 - ERROR - ValueError: 総液量がTWIを超過しています。製剤の配合を見直してください。
+2024-12-05 12:35:28,348 - DEBUG - 製剤データのロードに成功しました。
+2024-12-05 12:35:28,353 - DEBUG - 患者データ: weight=1.33 twi=110.0 gir=7.0 gir_included=True amino_acid=3.0 amino_acid_included=True na=2.5 na_included=True k=1.5 k_included=True p=1.5 p_included=True
+2024-12-05 12:35:28,353 - DEBUG - 選択された製剤: name='リハビックスK2' glucose_percentage=21.0 na=0.0 k=15.0 cl=0.0 p=10.0 calories=0.0
+2024-12-05 12:35:28,354 - INFO - 計算開始
+2024-12-05 12:35:28,354 - DEBUG - 患者データ: weight=1.33 twi=110.0 gir=7.0 gir_included=True amino_acid=3.0 amino_acid_included=True na=2.5 na_included=True k=1.5 k_included=True p=1.5 p_included=True
+2024-12-05 12:35:28,354 - DEBUG - 選択された製剤: name='リハビックスK2' glucose_percentage=21.0 na=0.0 k=15.0 cl=0.0 p=10.0 calories=0.0
+2024-12-05 12:35:28,354 - DEBUG - 計算ステップ: 1. **総投与量 (TWI)**
+    - 110.0 mL/kg/day × 1.33 kg = **146.30 mL/day**
+
+2. **必要GIR**
+    - 7.0 mg/kg/min × 1.33 kg × 60 min × 24時間 ÷ 1000 = **13.41 g/day**
+
+3. **必要アミノ酸量**
+    - 3.0 g/kg/day × 1.33 kg = **3.99 g/day**
+
+4. **必要Na量**
+    - 2.5 mEq/kg/day × 1.33 kg = **3.33 mEq/day**
+
+5. **必要K量**
+    - 1.5 mEq/kg/day × 1.33 kg = **2.00 mEq/day**
+
+6. **必要P量**
+    - 1.5 mmol/kg/day × 1.33 kg = **2.00 mmol/day**
+
+7. **ブドウ糖計算**
+    - ブドウ糖濃度: 21.0% (= 0.21 g/mL)
+    - 必要ブドウ糖量: 13.41 g/day ÷ 0.21 g/mL = **63.84 mL**
+
+8. **アミノ酸計算**
+    - アミノ酸濃度: 0.076 g/mL
+    - 必要アミノ酸量: 3.99 g/day ÷ 0.076 g/mL = **52.50 mL**
+
+9. **Na量計算**
+    - ベース製剤からのNa量: 0.0 mEq/L × 63.84 mL/day ÷ 1000 = **0.00 mEq/day**
+    - 追加で必要なNa量: 3.33 mEq/day - 0.00 mEq/day = **3.33 mEq/day**
+
+10. **リン酸NaからのNa計算**
+    - Na濃度: 0.75 mEq/mL
+    - 必要Na量: 3.33 mEq/day ÷ 0.75 mEq/mL = **4.43 mL**
+
+11. **K量計算**
+    - ベース製剤からのK量: 15.0 mEq/L × 63.84 mL/day ÷ 1000 = **0.96 mEq/day**
+    - 追加で必要なK量: 2.00 mEq/day - 0.96 mEq/day = **1.04 mEq/day**
+
+12. **KClからのK計算**
+    - K濃度: 1.0 mEq/mL
+    - 必要K量: 1.04 mEq/day ÷ 1.0 mEq/mL = **1.04 mL**
+
+13. **リン酸NaからのP計算**
+    - P濃度: 0.5 mmol/mL
+    - 必要P量: 2.00 mmol/day ÷ 0.5 mmol/mL = **3.99 mL**
+
+14. **計算された総液量**
+    - 63.84 + 52.50 + 4.43 + 1.04 + 3.99 = **125.80 mL**
+    - **必要水量**: 146.30 mL/day - 125.80 mL/day = **20.50 mL/day**
+
+15. **蒸留水の量**
+    - max(20.50, 0) = **20.50 mL/day**
+
+16. **配合量の詳細**
+    - ソルデム3AG: 63.84 mL/day
+    - プレアミンP: 52.50 mL/day
+    - リン酸Na: 3.99 mL/day
+    - KCl: 1.04 mL/day
+    - 蒸留水: 20.50 mL/day
+
+2024-12-05 12:35:28,355 - DEBUG - 配合量の詳細: {'ソルデム3AG': 63.84000000000001, 'プレアミンP': 52.50000000000001, 'リン酸Na': 3.99, 'KCl': 1.0373999999999999, '蒸留水': 20.499266666666657}
+2024-12-05 12:35:28,355 - INFO - 計算完了
+2024-12-05 12:35:28,355 - DEBUG - 計算結果: gir=7.0 amino_acid=3.0 na=2.5 k=1.5 p=1.5 detailed_mix={'ソルデム3AG': 63.84000000000001, 'プレアミンP': 52.50000000000001, 'リン酸Na': 3.99, 'KCl': 1.0373999999999999, '蒸留水': 20.499266666666657} calculation_steps='1. **総投与量 (TWI)**\n    - 110.0 mL/kg/day × 1.33 kg = **146.30 mL/day**\n\n2. **必要GIR**\n    - 7.0 mg/kg/min × 1.33 kg × 60 min × 24時間 ÷ 1000 = **13.41 g/day**\n\n3. **必要アミノ酸量**\n    - 3.0 g/kg/day × 1.33 kg = **3.99 g/day**\n\n4. **必要Na量**\n    - 2.5 mEq/kg/day × 1.33 kg = **3.33 mEq/day**\n\n5. **必要K量**\n    - 1.5 mEq/kg/day × 1.33 kg = **2.00 mEq/day**\n\n6. **必要P量**\n    - 1.5 mmol/kg/day × 1.33 kg = **2.00 mmol/day**\n\n7. **ブドウ糖計算**\n    - ブドウ糖濃度: 21.0% (= 0.21 g/mL)\n    - 必要ブドウ糖量: 13.41 g/day ÷ 0.21 g/mL = **63.84 mL**\n\n8. **アミノ酸計算**\n    - アミノ酸濃度: 0.076 g/mL\n    - 必要アミノ酸量: 3.99 g/day ÷ 0.076 g/mL = **52.50 mL**\n\n9. **Na量計算**\n    - ベース製剤からのNa量: 0.0 mEq/L × 63.84 mL/day ÷ 1000 = **0.00 mEq/day**\n    - 追加で必要なNa量: 3.33 mEq/day - 0.00 mEq/day = **3.33 mEq/day**\n\n10. **リン酸NaからのNa計算**\n    - Na濃度: 0.75 mEq/mL\n    - 必要Na量: 3.33 mEq/day ÷ 0.75 mEq/mL = **4.43 mL**\n\n11. **K量計算**\n    - ベース製剤からのK量: 15.0 mEq/L × 63.84 mL/day ÷ 1000 = **0.96 mEq/day**\n    - 追加で必要なK量: 2.00 mEq/day - 0.96 mEq/day = **1.04 mEq/day**\n\n12. **KClからのK計算**\n    - K濃度: 1.0 mEq/mL\n    - 必要K量: 1.04 mEq/day ÷ 1.0 mEq/mL = **1.04 mL**\n\n13. **リン酸NaからのP計算**\n    - P濃度: 0.5 mmol/mL\n    - 必要P量: 2.00 mmol/day ÷ 0.5 mmol/mL = **3.99 mL**\n\n14. **計算された総液量**\n    - 63.84 + 52.50 + 4.43 + 1.04 + 3.99 = **125.80 mL**\n    - **必要水量**: 146.30 mL/day - 125.80 mL/day = **20.50 mL/day**\n\n15. **蒸留水の量**\n    - max(20.50, 0) = **20.50 mL/day**\n\n16. **配合量の詳細**\n    - ソルデム3AG: 63.84 mL/day\n    - プレアミンP: 52.50 mL/day\n    - リン酸Na: 3.99 mL/day\n    - KCl: 1.04 mL/day\n    - 蒸留水: 20.50 mL/day\n'
+2024-12-05 12:39:45,850 - DEBUG - 製剤データのロードに成功しました。
+2024-12-05 12:39:47,107 - DEBUG - 製剤データのロードに成功しました。
+2024-12-05 12:39:47,112 - DEBUG - 患者データ: weight=1.33 twi=110.0 gir=7.0 gir_included=True amino_acid=3.0 amino_acid_included=True na=2.5 na_included=True k=1.5 k_included=True p=1.5 p_included=True
+2024-12-05 12:39:47,113 - DEBUG - 選択された製剤: name='ソルデム3AG' glucose_percentage=75.0 na=35.0 k=20.0 cl=35.0 p=0.0 calories=300.0
+2024-12-05 12:39:47,113 - INFO - 計算開始
+2024-12-05 12:39:47,113 - DEBUG - 患者データ: weight=1.33 twi=110.0 gir=7.0 gir_included=True amino_acid=3.0 amino_acid_included=True na=2.5 na_included=True k=1.5 k_included=True p=1.5 p_included=True
+2024-12-05 12:39:47,114 - DEBUG - 選択された製剤: name='ソルデム3AG' glucose_percentage=75.0 na=35.0 k=20.0 cl=35.0 p=0.0 calories=300.0
+2024-12-05 12:39:47,114 - DEBUG - 計算ステップ: 1. **総投与量 (TWI)**
+    - 110.0 mL/kg/day × 1.33 kg = **146.30 mL/day**
+
+2. **必要量**
+    - **GIR**
+        - 7.0 mg/kg/min × 1.33 kg × 60 min × 24時間 ÷ 1000 = **13.41 g/day**
+    - **アミノ酸量**
+        - 3.0 g/kg/day × 1.33 kg = **3.99 g/day**
+    - **Na量**
+        - 2.5 mEq/kg/day × 1.33 kg = **3.33 mEq/day**
+    - **K量**
+        - 1.5 mEq/kg/day × 1.33 kg = **2.00 mEq/day**
+    - **P量**
+        - 1.5 mmol/kg/day × 1.33 kg = **2.00 mmol/day**
+
+3. **投与計算**
+    - **ブドウ糖計算**
+        - ブドウ糖濃度: 75.0% (= 0.75 g/mL)
+        - 必要ブドウ糖量: 13.41 g/day ÷ 0.75 g/mL = **17.88 mL**
+    - **アミノ酸計算**
+        - アミノ酸濃度: 0.076 g/mL
+        - 必要アミノ酸量: 3.99 g/day ÷ 0.076 g/mL = **52.50 mL**
+    - **Na量計算**
+        - ベース製剤からのNa量: 35.0 mEq/L × 17.88 mL/day ÷ 1000 = **0.63 mEq/day**
+        - 追加で必要なNa量: 3.33 mEq/day - 0.63 mEq/day = **2.70 mEq/day**
+    - **リン酸NaからのNa計算**
+        - Na濃度: 0.75 mEq/mL
+        - 必要Na量: 2.70 mEq/day ÷ 0.75 mEq/mL = **3.60 mL**
+    - **K量計算**
+        - ベース製剤からのK量: 20.0 mEq/L × 17.88 mL/day ÷ 1000 = **0.36 mEq/day**
+        - 追加で必要なK量: 2.00 mEq/day - 0.36 mEq/day = **1.64 mEq/day**
+    - **KClからのK計算**
+        - K濃度: 1.0 mEq/mL
+        - 必要K量: 1.64 mEq/day ÷ 1.0 mEq/mL = **1.64 mL**
+    - **リン酸NaからのP計算**
+        - P濃度: 0.5 mmol/mL
+        - 必要P量: 2.00 mmol/day ÷ 0.5 mmol/mL = **3.99 mL**
+
+4. **総液量計算**
+    - 総液量: 17.88 + 52.50 + 3.60 + 1.64 + 3.99 = **79.60 mL**
+    - 必要水量: 146.30 mL/day - 79.60 mL/day = **66.70 mL/day**
+
+5. **蒸留水の量**
+    - max(66.70, 0) = **66.70 mL/day**
+
+6. **配合量の詳細**
+    - ソルデム3AG: 17.88 mL/day
+    - プレアミンP: 52.50 mL/day
+    - リン酸Na: 3.99 mL/day
+    - KCl: 1.64 mL/day
+    - 蒸留水: 66.70 mL/day
+
+2024-12-05 12:39:47,115 - DEBUG - 配合量の詳細: {'ソルデム3AG': 17.875200000000003, 'プレアミンP': 52.50000000000001, 'リン酸Na': 3.99, 'KCl': 1.637496, '蒸留水': 66.69814666666667}
+2024-12-05 12:39:47,115 - INFO - 計算完了
+2024-12-05 12:39:47,115 - DEBUG - 計算結果: gir=7.0 amino_acid=3.0 na=2.5 k=1.5 p=1.5 detailed_mix={'ソルデム3AG': 17.875200000000003, 'プレアミンP': 52.50000000000001, 'リン酸Na': 3.99, 'KCl': 1.637496, '蒸留水': 66.69814666666667} calculation_steps='1. **総投与量 (TWI)**\n    - 110.0 mL/kg/day × 1.33 kg = **146.30 mL/day**\n\n2. **必要量**\n    - **GIR**\n        - 7.0 mg/kg/min × 1.33 kg × 60 min × 24時間 ÷ 1000 = **13.41 g/day**\n    - **アミノ酸量**\n        - 3.0 g/kg/day × 1.33 kg = **3.99 g/day**\n    - **Na量**\n        - 2.5 mEq/kg/day × 1.33 kg = **3.33 mEq/day**\n    - **K量**\n        - 1.5 mEq/kg/day × 1.33 kg = **2.00 mEq/day**\n    - **P量**\n        - 1.5 mmol/kg/day × 1.33 kg = **2.00 mmol/day**\n\n3. **投与計算**\n    - **ブドウ糖計算**\n        - ブドウ糖濃度: 75.0% (= 0.75 g/mL)\n        - 必要ブドウ糖量: 13.41 g/day ÷ 0.75 g/mL = **17.88 mL**\n    - **アミノ酸計算**\n        - アミノ酸濃度: 0.076 g/mL\n        - 必要アミノ酸量: 3.99 g/day ÷ 0.076 g/mL = **52.50 mL**\n    - **Na量計算**\n        - ベース製剤からのNa量: 35.0 mEq/L × 17.88 mL/day ÷ 1000 = **0.63 mEq/day**\n        - 追加で必要なNa量: 3.33 mEq/day - 0.63 mEq/day = **2.70 mEq/day**\n    - **リン酸NaからのNa計算**\n        - Na濃度: 0.75 mEq/mL\n        - 必要Na量: 2.70 mEq/day ÷ 0.75 mEq/mL = **3.60 mL**\n    - **K量計算**\n        - ベース製剤からのK量: 20.0 mEq/L × 17.88 mL/day ÷ 1000 = **0.36 mEq/day**\n        - 追加で必要なK量: 2.00 mEq/day - 0.36 mEq/day = **1.64 mEq/day**\n    - **KClからのK計算**\n        - K濃度: 1.0 mEq/mL\n        - 必要K量: 1.64 mEq/day ÷ 1.0 mEq/mL = **1.64 mL**\n    - **リン酸NaからのP計算**\n        - P濃度: 0.5 mmol/mL\n        - 必要P量: 2.00 mmol/day ÷ 0.5 mmol/mL = **3.99 mL**\n\n4. **総液量計算**\n    - 総液量: 17.88 + 52.50 + 3.60 + 1.64 + 3.99 = **79.60 mL**\n    - 必要水量: 146.30 mL/day - 79.60 mL/day = **66.70 mL/day**\n\n5. **蒸留水の量**\n    - max(66.70, 0) = **66.70 mL/day**\n\n6. **配合量の詳細**\n    - ソルデム3AG: 17.88 mL/day\n    - プレアミンP: 52.50 mL/day\n    - リン酸Na: 3.99 mL/day\n    - KCl: 1.64 mL/day\n    - 蒸留水: 66.70 mL/day\n'
