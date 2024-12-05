@@ -23,6 +23,9 @@ def calculate_infusion(patient: Patient, base_solution: Solution, additives: Dic
         logging.debug(f"選択されたベース製剤: {base_solution}")
         logging.debug(f"選択された添加剤: {additives}")
 
+        # ベース製剤を selected_solution として保存
+        selected_solution = base_solution
+
         calculation_steps = ""
         step = 1  # メインステップ番号の初期化
 
@@ -44,7 +47,7 @@ def calculate_infusion(patient: Patient, base_solution: Solution, additives: Dic
         cl = patient.cl if patient.cl_included else None  # mEq/kg/day
 
         # 必要量の計算
-        calculation_steps += f"{step}. **必要量**\n"
+        calculation_steps += f"{step}. **必要量の計算**\n"
         step += 1
 
         input_amounts = {}
@@ -102,13 +105,13 @@ def calculate_infusion(patient: Patient, base_solution: Solution, additives: Dic
 
         if fat is not None:
             total_fat = fat * weight  # g/day
-            calculation_steps += f"    - **脂肪**\n"
+            calculation_steps += f"    - **脂肪量**\n"
             calculation_steps += f"        - {fat} g/kg/day × {weight} kg = **{total_fat:.2f} g/day**\n"
-            input_amounts['脂肪'] = fat
-            input_units['脂肪'] = "g/kg/day"
+            input_amounts['脂肪量'] = fat
+            input_units['脂肪量'] = "g/kg/day"
         else:
             total_fat = 0.0
-            calculation_steps += f"    - **脂肪**: 計算対象外\n"
+            calculation_steps += f"    - **脂肪量**: 計算対象外\n"
 
         if ca is not None:
             total_ca = ca * weight  # mEq/day
@@ -191,18 +194,24 @@ def calculate_infusion(patient: Patient, base_solution: Solution, additives: Dic
             calculation_steps += f"    - **Na量計算**\n"
             calculation_steps += f"        - ベース製剤からのNa量: {base_solution.na} {base_solution.na_unit} × {glucose_volume:.2f} mL/day ÷ 1000 = **{base_na_total:.2f} mEq/day**\n"
             additional_na = total_na - base_na_total  # mEq/day
-            calculation_steps += f"        - 追加で必要なNa量: {total_na:.2f} mEq/day - {base_na_total:.2f} mEq/day = **{additional_na:.2f} mEq/day**\n"
+            if additional_na > 0:
+                calculation_steps += f"        - 追加で必要なNa量: {total_na:.2f} mEq/day - {base_na_total:.2f} mEq/day = **{additional_na:.2f} mEq/day**\n"
+            else:
+                additional_na = 0.0
+                calculation_steps += f"        - 追加で必要なNa量はありません。\n"
         else:
             base_na_total = 0.0
             additional_na = 0.0
             calculation_steps += f"    - **Na量計算**: 計算対象外\n"
 
-        # リン酸NaからのNa
+        # リン酸NaからのNaとPの計算
+        phospho_na_volume = 0.0
         if na is not None and additional_na > 0:
             if "リン酸Na" not in additives:
                 raise ValueError("'リン酸Na' が additives.json に定義されていません。")
             phospho_na = additives["リン酸Na"]
             na_per_ml_phospho = get_safe_concentration(phospho_na, 'na_concentration')
+            p_per_ml_phospho = get_safe_concentration(phospho_na, 'p_concentration')
             if na_per_ml_phospho == 0:
                 raise ValueError("リン酸NaのNa濃度が0です。")
             phospho_na_volume = additional_na / na_per_ml_phospho  # mL
@@ -213,19 +222,33 @@ def calculate_infusion(patient: Patient, base_solution: Solution, additives: Dic
             phospho_na_volume = 0.0
             calculation_steps += f"    - **リン酸NaからのNa計算**: 計算対象外\n"
 
+        if p is not None and total_p > 0:
+            p_volume = total_p / p_per_ml_phospho  # mL
+            calculation_steps += f"    - **リン酸NaからのP計算**\n"
+            calculation_steps += f"        - P濃度: {p_per_ml_phospho} {phospho_na.p_concentration_unit}\n"
+            calculation_steps += f"        - 必要P量: {total_p:.2f} mmol/day ÷ {p_per_ml_phospho} mmol/mL = **{p_volume:.2f} mL**\n"
+        else:
+            p_volume = 0.0
+            calculation_steps += f"    - **リン酸NaからのP計算**: 計算対象外\n"
+
         # K量の計算
         if k is not None and total_k > 0:
             base_k_total = (get_safe_concentration(base_solution, 'k') * glucose_volume) / 1000.0  # mEq/day
             calculation_steps += f"    - **K量計算**\n"
             calculation_steps += f"        - ベース製剤からのK量: {base_solution.k} {base_solution.k_unit} × {glucose_volume:.2f} mL/day ÷ 1000 = **{base_k_total:.2f} mEq/day**\n"
             additional_k = total_k - base_k_total  # mEq/day
-            calculation_steps += f"        - 追加で必要なK量: {total_k:.2f} mEq/day - {base_k_total:.2f} mEq/day = **{additional_k:.2f} mEq/day**\n"
+            if additional_k > 0:
+                calculation_steps += f"        - 追加で必要なK量: {total_k:.2f} mEq/day - {base_k_total:.2f} mEq/day = **{additional_k:.2f} mEq/day**\n"
+            else:
+                additional_k = 0.0
+                calculation_steps += f"        - 追加で必要なK量はありません。\n"
         else:
             base_k_total = 0.0
             additional_k = 0.0
             calculation_steps += f"    - **K量計算**: 計算対象外\n"
 
-        # KClからのK
+        # KClからのKの計算
+        kcl_volume = 0.0
         if k is not None and additional_k > 0:
             if "KCl" not in additives:
                 raise ValueError("'KCl' が additives.json に定義されていません。")
@@ -241,26 +264,12 @@ def calculate_infusion(patient: Patient, base_solution: Solution, additives: Dic
             kcl_volume = 0.0
             calculation_steps += f"    - **KClからのK計算**: 計算対象外\n"
 
-        # P量の計算
-        if p is not None and total_p > 0:
-            if "リン酸Na" not in additives:
-                raise ValueError("'リン酸Na' が additives.json に定義されていません。")
-            phospho_na = additives["リン酸Na"]
-            p_per_ml_phospho = get_safe_concentration(phospho_na, 'p_concentration')
-            if p_per_ml_phospho == 0:
-                raise ValueError("リン酸NaのP濃度が0です。")
-            p_volume = total_p / p_per_ml_phospho  # mL
-            calculation_steps += f"    - **リン酸NaからのP計算**\n"
-            calculation_steps += f"        - P濃度: {p_per_ml_phospho} {phospho_na.p_concentration_unit}\n"
-            calculation_steps += f"        - 必要P量: {total_p:.2f} mmol/day ÷ {p_per_ml_phospho} mmol/mL = **{p_volume:.2f} mL**\n"
-        else:
-            p_volume = 0.0
-            calculation_steps += f"    - **リン酸NaからのP計算**: 計算対象外\n"
+        # P量の計算はリン酸Naから既に行っています
 
         # 脂肪の計算
+        fat_volume = 0.0
         if fat is not None and total_fat > 0:
             # 使用する脂肪添加剤の選択
-            # ここでは単純にイントラリポス20%を使用する例を示します
             fat_solution = additives.get("イントラリポス20%")
             if not fat_solution:
                 raise ValueError("'イントラリポス20%' が additives.json に定義されていません。")
@@ -276,6 +285,7 @@ def calculate_infusion(patient: Patient, base_solution: Solution, additives: Dic
             calculation_steps += f"    - **脂肪計算**: 計算対象外\n"
 
         # Ca量の計算
+        ca_volume = 0.0
         if ca is not None and total_ca > 0:
             if "カルチコール" not in additives:
                 raise ValueError("'カルチコール' が additives.json に定義されていません。")
@@ -292,6 +302,7 @@ def calculate_infusion(patient: Patient, base_solution: Solution, additives: Dic
             calculation_steps += f"    - **Ca量計算**: 計算対象外\n"
 
         # Mg量の計算
+        mg_volume = 0.0
         if mg is not None and total_mg > 0:
             if "カルチコール" not in additives:
                 raise ValueError("'カルチコール' が additives.json に定義されていません。")
@@ -308,6 +319,7 @@ def calculate_infusion(patient: Patient, base_solution: Solution, additives: Dic
             calculation_steps += f"    - **Mg量計算**: 計算対象外\n"
 
         # Zn量の計算
+        zn_volume = 0.0
         if zn is not None and total_zn > 0:
             if "プレアミンP" not in additives:
                 raise ValueError("'プレアミンP' が additives.json に定義されていません。")
@@ -329,13 +341,18 @@ def calculate_infusion(patient: Patient, base_solution: Solution, additives: Dic
             calculation_steps += f"    - **Cl量計算**\n"
             calculation_steps += f"        - ベース製剤からのCl量: {base_solution.cl} {base_solution.cl_unit} × {glucose_volume:.2f} mL/day ÷ 1000 = **{base_cl_total:.2f} mEq/day**\n"
             additional_cl = total_cl - base_cl_total  # mEq/day
-            calculation_steps += f"        - 追加で必要なCl量: {total_cl:.2f} mEq/day - {base_cl_total:.2f} mEq/day = **{additional_cl:.2f} mEq/day**\n"
+            if additional_cl > 0:
+                calculation_steps += f"        - 追加で必要なCl量: {total_cl:.2f} mEq/day - {base_cl_total:.2f} mEq/day = **{additional_cl:.2f} mEq/day**\n"
+            else:
+                additional_cl = 0.0
+                calculation_steps += f"        - 追加で必要なCl量はありません。\n"
         else:
             base_cl_total = 0.0
             additional_cl = 0.0
             calculation_steps += f"    - **Cl量計算**: 計算対象外\n"
 
-        # 生理食塩水からのCl
+        # 生理食塩水からのClの計算
+        saline_volume = 0.0
         if cl is not None and additional_cl > 0:
             if "生理食塩水" not in additives:
                 raise ValueError("'生理食塩水' が additives.json に定義されていません。")
@@ -388,7 +405,7 @@ def calculate_infusion(patient: Patient, base_solution: Solution, additives: Dic
         step += 1
         detailed_mix = {}
         if glucose_volume > 0:
-            detailed_mix[base_solution.name] = glucose_volume
+            detailed_mix[base_solution.name] = glucose_volume  # selected_solution の代わりに base_solution を使用
         if amino_acid_volume > 0:
             detailed_mix["プレアミンP"] = amino_acid_volume
         if phospho_na_volume > 0:
@@ -404,7 +421,7 @@ def calculate_infusion(patient: Patient, base_solution: Solution, additives: Dic
             else:
                 detailed_mix["リン酸Na"] = p_volume
         if fat_volume > 0:
-            detailed_mix[fat_solution.name] = fat_volume
+            detailed_mix[additives["イントラリポス20%"].name] = fat_volume
         if ca_volume > 0:
             detailed_mix["カルチコール"] = ca_volume
         if mg_volume > 0:
@@ -449,38 +466,29 @@ def calculate_infusion(patient: Patient, base_solution: Solution, additives: Dic
 
         # 計算
         for sol_name, vol in detailed_mix.items():
-            if sol_name == base_solution.name:
+            if sol_name == selected_solution.name:
                 # ベース製剤からの栄養素
-                nutrient_totals['Na'] += base_solution.na * vol / 1000.0  # mEq/L to mEq/mL
-                nutrient_totals['K'] += base_solution.k * vol / 1000.0
-                nutrient_totals['Cl'] += base_solution.cl * vol / 1000.0
-                nutrient_totals['P'] += base_solution.p * vol / 1000.0
-                nutrient_totals['Glucose'] += (base_solution.glucose_percentage * vol) / 100.0  # g/L to g/mL
-                nutrient_totals['Mg'] += base_solution.mg * vol / 1000.0
-                nutrient_totals['Ca'] += base_solution.ca * vol / 1000.0
-                nutrient_totals['Zn'] += base_solution.zn * vol / 1000.0
+                nutrient_totals['Na'] += get_safe_concentration(selected_solution, 'na') * vol / 1000.0  # mEq/L to mEq/mL
+                nutrient_totals['K'] += get_safe_concentration(selected_solution, 'k') * vol / 1000.0
+                nutrient_totals['Cl'] += get_safe_concentration(selected_solution, 'cl') * vol / 1000.0
+                nutrient_totals['P'] += get_safe_concentration(selected_solution, 'p') * vol / 1000.0
+                nutrient_totals['Glucose'] += (get_safe_concentration(selected_solution, 'glucose_percentage') * vol) / 100.0  # g/L to g/mL
+                nutrient_totals['Mg'] += get_safe_concentration(selected_solution, 'mg') * vol / 1000.0
+                nutrient_totals['Ca'] += get_safe_concentration(selected_solution, 'ca') * vol / 1000.0
+                nutrient_totals['Zn'] += get_safe_concentration(selected_solution, 'zn') * vol / 1000.0
             else:
                 additive = additives.get(sol_name)
                 if additive:
                     # 各添加剤からの栄養素
-                    if additive.na_concentration > 0:
-                        nutrient_totals['Na'] += additive.na_concentration * vol
-                    if additive.k_concentration > 0:
-                        nutrient_totals['K'] += additive.k_concentration * vol
-                    if additive.ca_concentration > 0:
-                        nutrient_totals['Ca'] += additive.ca_concentration * vol
-                    if additive.p_concentration > 0:
-                        nutrient_totals['P'] += additive.p_concentration * vol
-                    if additive.mg_concentration > 0:
-                        nutrient_totals['Mg'] += additive.mg_concentration * vol
-                    if additive.zn_concentration > 0:
-                        nutrient_totals['Zn'] += additive.zn_concentration * vol
-                    if additive.cl_concentration > 0:
-                        nutrient_totals['Cl'] += additive.cl_concentration * vol
-                    if additive.amino_acid_concentration > 0:
-                        nutrient_totals['Amino Acids'] += additive.amino_acid_concentration * vol
-                    if additive.fat_concentration > 0:
-                        nutrient_totals['Fats'] += additive.fat_concentration * vol
+                    nutrient_totals['Na'] += additive.na_concentration * vol
+                    nutrient_totals['K'] += additive.k_concentration * vol
+                    nutrient_totals['Ca'] += additive.ca_concentration * vol
+                    nutrient_totals['P'] += additive.p_concentration * vol
+                    nutrient_totals['Mg'] += additive.mg_concentration * vol
+                    nutrient_totals['Zn'] += additive.zn_concentration * vol
+                    nutrient_totals['Cl'] += additive.cl_concentration * vol
+                    nutrient_totals['Amino Acids'] += additive.amino_acid_concentration * vol
+                    nutrient_totals['Fats'] += additive.fat_concentration * vol
                     # ブドウ糖が含まれている場合は追加
                     if hasattr(additive, 'glucose_percentage') and getattr(additive, 'glucose_percentage', 0) > 0:
                         nutrient_totals['Glucose'] += (additive.glucose_percentage * vol) / 100.0  # % to g/mL
