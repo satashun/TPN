@@ -71,7 +71,7 @@
         "cl_unit": "mEq/L",
         "p": 0,
         "p_unit": "mmol/L",
-        "calories": 0,
+        "calories": 400,
         "calories_unit": "kcal/L"
     },
     {
@@ -86,7 +86,7 @@
         "cl_unit": "mEq/L",
         "p": 0,
         "p_unit": "mmol/L",
-        "calories": 0,
+        "calories": 800,
         "calories_unit": "kcal/L"
     }
 ]

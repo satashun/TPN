@@ -1,19 +1,20 @@
 # app.py
 import streamlit as st
-import json
-from models import Patient, Solution, Additive, InfusionMix
-from calculation import calculate_infusion
-from pydantic import ValidationError
-import logging
-import os
 import pandas as pd
 import io
+from models.patient import Patient
+from models.solution import Solution
+from models.additive import Additive
+from models.infusion_mix import InfusionMix
+from utils.data_loader import load_solutions, load_additives
+from utils.logging_config import setup_logging
+from calculation.infusion_calculator import calculate_infusion
+from pydantic import ValidationError
+import logging
 
-# ユーティリティ関数をインポート（もしあれば）
-# from utils import setup_logging
-
-# ログの設定（もし使用していれば）
-logging.basicConfig(level=logging.DEBUG, format='%(asctime)s - %(levelname)s - %(message)s')
+# ログの設定
+setup_logging()
+logging.info("アプリケーションの起動")
 
 # ページの設定
 st.set_page_config(
@@ -40,47 +41,6 @@ st.markdown(
     unsafe_allow_html=True
 )
 
-# 輸液製剤のデータをロード
-def load_solutions(file_path='data/base_solutions.json'):
-    try:
-        # スクリプトのディレクトリを基準に絶対パスを作成
-        script_dir = os.path.dirname(os.path.abspath(__file__))
-        full_path = os.path.join(script_dir, file_path)
-        
-        with open(full_path, 'r', encoding='utf-8') as f:
-            solutions_data = json.load(f)
-        solutions = [Solution(**sol) for sol in solutions_data]
-        logging.debug("ベース製剤データのロードに成功しました。")
-        return solutions
-    except FileNotFoundError:
-        logging.error(f"ベース製剤データファイルが見つかりません: {file_path}")
-        st.error(f"ベース製剤データファイルが見つかりません: {file_path}")
-        return []
-    except json.JSONDecodeError as e:
-        logging.error(f"ベース製剤データファイルのJSON解析エラー: {e}")
-        st.error(f"ベース製剤データファイルのJSON解析エラー: {e}")
-        return []
-
-def load_additives(file_path='data/additives.json'):
-    try:
-        script_dir = os.path.dirname(os.path.abspath(__file__))
-        full_path = os.path.join(script_dir, file_path)
-        
-        with open(full_path, 'r', encoding='utf-8') as f:
-            additives_data = json.load(f)
-        additives = {add['name']: Additive(**add) for add in additives_data}
-        logging.debug("添加剤データのロードに成功しました。")
-        return additives
-    except FileNotFoundError:
-        logging.error(f"添加剤データファイルが見つかりません: {file_path}")
-        st.error(f"添加剤データファイルが見つかりません: {file_path}")
-        return {}
-    except json.JSONDecodeError as e:
-        logging.error(f"添加剤データファイルのJSON解析エラー: {e}")
-        st.error(f"添加剤データファイルのJSON解析エラー: {e}")
-        return {}
-
-# Streamlit Appのメイン関数
 def main():
     st.title("TPN 配合計算アプリケーション")
     st.markdown("---")
@@ -90,9 +50,44 @@ def main():
     additives = load_additives()
     
     if not base_solutions or not additives:
+        st.error("データのロードに失敗しました。")
         st.stop()  # データがロードできない場合、アプリを停止
     
-    # 患者情報と製剤選択のフォーム
+    # ベース製剤の選択（フォームの外）
+    st.header("輸液製剤の選択")
+    selected_solution_name = st.selectbox(
+        "ベース製剤を選択してください",
+        [sol.name for sol in base_solutions],
+        key="base_solution_selectbox"  # ユニークなキーを設定
+    )
+    selected_solution = next((sol for sol in base_solutions if sol.name == selected_solution_name), None)
+    
+    # 選択されたベース製剤の組成をリアルタイムで表示
+    if selected_solution:
+        st.markdown("**選択されたベース製剤の組成:**")
+        sol_df = pd.DataFrame({
+            "項目": [
+                f"ブドウ糖濃度 ({selected_solution.glucose_unit})",
+                f"Na⁺ ({selected_solution.na_unit})",
+                f"K⁺ ({selected_solution.k_unit})",
+                f"Cl⁻ ({selected_solution.cl_unit})",
+                f"P ({selected_solution.p_unit})",
+                f"カロリー ({selected_solution.calories_unit})"
+            ],
+            "値": [
+                f"{selected_solution.glucose_percentage} {selected_solution.glucose_unit}",
+                f"{selected_solution.na} {selected_solution.na_unit}",
+                f"{selected_solution.k} {selected_solution.k_unit}",
+                f"{selected_solution.cl} {selected_solution.cl_unit}",
+                f"{selected_solution.p} {selected_solution.p_unit}",
+                f"{selected_solution.calories} {selected_solution.calories_unit}"
+            ]
+        })
+        st.table(sol_df)
+    
+    st.markdown("---")
+    
+    # 患者情報と輸液製剤の選択を含むフォーム
     with st.form(key='infusion_form'):
         st.header("患者情報の入力")
         col1, col2 = st.columns(2)
@@ -124,6 +119,17 @@ def main():
                 step=0.1,
                 disabled=not gir_included,
                 help="GIRをmg/kg/min単位で入力してください。"
+            )
+            
+            fat_included = st.checkbox("脂肪を条件に含める", value=True)
+            fat = st.number_input(
+                "脂肪量 (g/kg/day)",
+                min_value=0.0,
+                max_value=100.0,
+                value=0.0,
+                step=1.0,
+                disabled=not fat_included,
+                help="脂肪量をg/kg/day単位で入力してください。"
             )
         
         with col2:
@@ -170,25 +176,8 @@ def main():
                 disabled=not p_included,
                 help="P量をmmol/kg/day単位で入力してください。"
             )
-        
-        # 脂肪とCaの入力
-        st.header("脂肪とCaの入力")
-        col3, col4 = st.columns(2)
-        
-        with col3:
-            fat_included = st.checkbox("脂肪を条件に含める", value=False)
-            fat = st.number_input(
-                "脂肪量 (g/kg/day)",
-                min_value=0.0,
-                max_value=10.0,
-                value=0.0,
-                step=0.1,
-                disabled=not fat_included,
-                help="脂肪量をg/kg/day単位で入力してください。"
-            )
-        
-        with col4:
-            ca_included = st.checkbox("Ca量を条件に含める", value=False)
+            
+            ca_included = st.checkbox("Ca量を条件に含める", value=True)
             ca = st.number_input(
                 "Ca量 (mEq/kg/day)",
                 min_value=0.0,
@@ -199,87 +188,61 @@ def main():
                 help="Ca量をmEq/kg/day単位で入力してください。"
             )
         
-        st.header("輸液製剤の選択")
-        selected_solution_name = st.selectbox("ベース製剤を選択してください", [sol.name for sol in base_solutions])
-        selected_solution = next((sol for sol in base_solutions if sol.name == selected_solution_name), None)
-        
-        # 選択されたベース製剤の組成を表示
-        if selected_solution:
-            st.markdown("**選択されたベース製剤の組成:**")
-            sol_df = pd.DataFrame({
-                "項目": [
-                    f"ブドウ糖濃度 ({selected_solution.glucose_unit})",
-                    f"Na⁺ ({selected_solution.na_unit})",
-                    f"K⁺ ({selected_solution.k_unit})",
-                    f"Cl⁻ ({selected_solution.cl_unit})",
-                    f"P ({selected_solution.p_unit})",
-                    f"カロリー ({selected_solution.calories_unit})"
-                ],
-                "値": [
-                    f"{selected_solution.glucose_percentage} {selected_solution.glucose_unit}",
-                    f"{selected_solution.na} {selected_solution.na_unit}",
-                    f"{selected_solution.k} {selected_solution.k_unit}",
-                    f"{selected_solution.cl} {selected_solution.cl_unit}",
-                    f"{selected_solution.p} {selected_solution.p_unit}",
-                    f"{selected_solution.calories} {selected_solution.calories_unit}"
-                ]
-            })
-            st.table(sol_df)
-        
-        # フォームの送信
+        st.markdown("---")
+        # フォームの送信ボタンを輸液製剤選択の下に配置
         submit_button = st.form_submit_button(label='配合を計算')
     
-    if submit_button:
-        with st.spinner('計算中...'):
-            try:
-                # Patientオブジェクトの作成
-                patient = Patient(
-                    weight=weight,
-                    twi=twi,
-                    gir=gir if gir_included else None,
-                    gir_included=gir_included,
-                    amino_acid=amino_acid if amino_acid_included else None,
-                    amino_acid_included=amino_acid_included,
-                    na=na if na_included else None,
-                    na_included=na_included,
-                    k=k if k_included else None,
-                    k_included=k_included,
-                    p=p if p_included else None,
-                    p_included=p_included,
-                    fat=fat if fat_included else None,
-                    fat_included=fat_included,
-                    ca=ca if ca_included else None,
-                    ca_included=ca_included
-                )
-                logging.debug(f"患者データ: {patient}")
-                
-                logging.debug(f"選択されたベース製剤: {selected_solution}")
-                
-                # 計算の実行
-                infusion_mix = calculate_infusion(patient, selected_solution, additives)
-                logging.debug(f"計算結果: {infusion_mix}")
-                
-                # 計算結果をセッションステートに保存
-                st.session_state['infusion_mix'] = infusion_mix
-                
-            except ValidationError as e:
-                st.error("入力値に誤りがあります。再度確認してください。")
-                logging.error(f"ValidationError: {e}")
-            except ValueError as ve:
-                st.error(str(ve))
-                logging.error(f"ValueError: {ve}")
-            except Exception as e:
-                st.error("計算中にエラーが発生しました。詳細はログを確認してください。")
-                logging.error(f"Unexpected error: {e}")
-
-    # 計算結果の表示
-    if 'infusion_mix' in st.session_state:
+        if submit_button:
+            with st.spinner('計算中...'):
+                try:
+                    # Patientオブジェクトの作成
+                    patient = Patient(
+                        weight=weight,
+                        twi=twi,
+                        gir=gir if gir_included else None,
+                        gir_included=gir_included,
+                        amino_acid=amino_acid if amino_acid_included else None,
+                        amino_acid_included=amino_acid_included,
+                        na=na if na_included else None,
+                        na_included=na_included,
+                        k=k if k_included else None,
+                        k_included=k_included,
+                        p=p if p_included else None,
+                        p_included=p_included,
+                        fat=fat if fat_included else None,
+                        fat_included=fat_included,
+                        ca=ca if ca_included else None,
+                        ca_included=ca_included
+                    )
+                    logging.debug(f"患者データ: {patient}")
+                    
+                    logging.debug(f"選択されたベース製剤: {selected_solution}")
+                    
+                    # 計算の実行
+                    infusion_mix = calculate_infusion(patient, selected_solution, additives)
+                    logging.debug(f"計算結果: {infusion_mix}")
+                    
+                    # 計算結果をセッションステートに保存
+                    st.session_state['infusion_mix'] = infusion_mix
+                    
+                except ValidationError as e:
+                    st.error("入力値に誤りがあります。再度確認してください。")
+                    logging.error(f"ValidationError: {e}")
+                except ValueError as ve:
+                    st.error(str(ve))
+                    logging.error(f"ValueError: {ve}")
+                except Exception as e:
+                    st.error("計算中にエラーが発生しました。詳細はログを確認してください。")
+                    logging.error(f"Unexpected error: {e}")
+    
+    # 計算結果の表示はフォームの外に配置
+    if 'infusion_mix' in st.session_state and st.session_state['infusion_mix'] is not None:
         infusion_mix = st.session_state['infusion_mix']
         
         st.markdown("---")
         st.header("計算結果")
         
-        # 計算結果を2つのカラムに分割して表示
+        # 基本情報セクション
         col1, col2 = st.columns(2)
         
         with col1:
@@ -302,22 +265,56 @@ def main():
             if infusion_mix.p is not None:
                 st.write(f"**P量:** {infusion_mix.p:.2f} mmol/kg/day")
         
+        # 混合溶液の詳細
         st.subheader("混合溶液の詳細")
-        # 混合溶液の詳細を表形式で表示
         df = {
             "製剤名": list(infusion_mix.detailed_mix.keys()),
             "必要量 (mL/day)": [f"{value:.2f}" for value in infusion_mix.detailed_mix.values()]
         }
         st.table(df)
         
+        # 計算ステップの詳細
         st.subheader("計算ステップの詳細")
         with st.expander("計算ステップを表示"):
-            # Markdown形式で計算ステップを整形
             steps_formatted = infusion_mix.calculation_steps.replace("\n", "\n")
             st.markdown(f"**計算ステップ:**\n\n{steps_formatted}")
             st.info("各計算ステップを確認してください。")
         
-        # (オプション) 計算結果のダウンロード
+        # 最終的な混合溶液の成分結論を具体的に表示
+        st.subheader("最終的な混合溶液中の各栄養素の量")
+        final_mix = infusion_mix.detailed_mix
+        # 各栄養素の最終溶液中の量を計算
+        nutrient_totals = {}
+        for nutrient in ['Na', 'K', 'Ca', 'P']:
+            total = 0.0
+            for sol_name, vol in final_mix.items():
+                # ベース製剤か添加剤かを判別
+                sol_obj = next((sol for sol in base_solutions if sol.name == sol_name), None)
+                if sol_obj:
+                    concentration = getattr(sol_obj, nutrient.lower(), 0)
+                    total += concentration * vol
+                else:
+                    # 添加剤の濃度を取得
+                    additive_obj = additives.get(sol_name, None)
+                    if additive_obj:
+                        if nutrient == 'Na':
+                            concentration = getattr(additive_obj, 'na_concentration', 0)
+                        elif nutrient == 'Ca':
+                            concentration = getattr(additive_obj, 'ca_concentration', 0)
+                        elif nutrient == 'P':
+                            concentration = getattr(additive_obj, 'p_concentration', 0)
+                        else:
+                            concentration = 0
+                        total += concentration * vol
+            nutrient_totals[nutrient] = total
+        
+        nutrient_df = pd.DataFrame({
+            "栄養素": list(nutrient_totals.keys()),
+            "最終溶液中の量": [f"{v:.2f}" for v in nutrient_totals.values()]
+        })
+        st.table(nutrient_df)
+        
+        # ダウンロードボタン
         with st.expander("計算結果をダウンロード"):
             # データの収集
             rows = []
@@ -335,6 +332,9 @@ def main():
                 rows.append({"項目": "脂肪量 (g/kg/day)", "値": infusion_mix.fat})
             if infusion_mix.ca is not None:
                 rows.append({"項目": "Ca量 (mEq/kg/day)", "値": infusion_mix.ca})
+            if nutrient_totals:
+                for nutrient, total in nutrient_totals.items():
+                    rows.append({"項目": f"{nutrient}量 (mEq/day)", "値": f"{total:.2f}"})
             
             # データフレームを作成
             if rows:

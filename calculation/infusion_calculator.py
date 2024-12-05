@@ -1,5 +1,8 @@
-# calculation.py
-from models import Patient, Solution, Additive, InfusionMix
+# calculation/infusion_calculator.py
+from models.patient import Patient
+from models.solution import Solution
+from models.additive import Additive
+from models.infusion_mix import InfusionMix
 from typing import Dict
 import logging
 
@@ -16,7 +19,7 @@ def calculate_infusion(patient: Patient, base_solution: Solution, additives: Dic
         weight = patient.weight
         twi = patient.twi * weight  # 総投与量 (mL/day)
         calculation_steps += f"{step}. **総投与量 (TWI)**\n"
-        calculation_steps += f"    - {patient.twi} {base_solution.glucose_unit}/kg/day × {weight} kg = **{twi:.2f} mL/day**\n\n"
+        calculation_steps += f"    - {patient.twi} mL/kg/day × {weight} kg = **{twi:.2f} mL/day**\n\n"
         step += 1
 
         gir = patient.gir if patient.gir_included else None  # mg/kg/min
@@ -50,7 +53,7 @@ def calculate_infusion(patient: Patient, base_solution: Solution, additives: Dic
         if na is not None:
             total_na = na * weight  # mEq/day
             calculation_steps += f"    - **Na量**\n"
-            calculation_steps += f"        - {na} {base_solution.na_unit}/kg/day × {weight} kg = **{total_na:.2f} {base_solution.na_unit}/day**\n"
+            calculation_steps += f"        - {na} mEq/kg/day × {weight} kg = **{total_na:.2f} mEq/day**\n"
         else:
             total_na = 0.0
             calculation_steps += f"    - **Na量**: 計算対象外\n"
@@ -58,7 +61,7 @@ def calculate_infusion(patient: Patient, base_solution: Solution, additives: Dic
         if k is not None:
             total_k = k * weight  # mEq/day
             calculation_steps += f"    - **K量**\n"
-            calculation_steps += f"        - {k} {base_solution.k_unit}/kg/day × {weight} kg = **{total_k:.2f} {base_solution.k_unit}/day**\n"
+            calculation_steps += f"        - {k} mEq/kg/day × {weight} kg = **{total_k:.2f} mEq/day**\n"
         else:
             total_k = 0.0
             calculation_steps += f"    - **K量**: 計算対象外\n"
@@ -66,7 +69,7 @@ def calculate_infusion(patient: Patient, base_solution: Solution, additives: Dic
         if p is not None:
             total_p = p * weight  # mmol/day
             calculation_steps += f"    - **P量**\n"
-            calculation_steps += f"        - {p} {base_solution.p_unit}/kg/day × {weight} kg = **{total_p:.2f} {base_solution.p_unit}/day**\n"
+            calculation_steps += f"        - {p} mmol/kg/day × {weight} kg = **{total_p:.2f} mmol/day**\n"
         else:
             total_p = 0.0
             calculation_steps += f"    - **P量**: 計算対象外\n"
@@ -74,7 +77,7 @@ def calculate_infusion(patient: Patient, base_solution: Solution, additives: Dic
         if fat is not None:
             total_fat = fat * weight  # g/day
             calculation_steps += f"    - **脂肪**\n"
-            calculation_steps += f"        - {fat} {base_solution.calories_unit}/kg/day × {weight} kg = **{total_fat:.2f} g/day**\n"
+            calculation_steps += f"        - {fat} g/kg/day × {weight} kg = **{total_fat:.2f} g/day**\n"
         else:
             total_fat = 0.0
             calculation_steps += f"    - **脂肪**: 計算対象外\n"
@@ -82,7 +85,7 @@ def calculate_infusion(patient: Patient, base_solution: Solution, additives: Dic
         if ca is not None:
             total_ca = ca * weight  # mEq/day
             calculation_steps += f"    - **Ca量**\n"
-            calculation_steps += f"        - {ca} {base_solution.calories_unit}/kg/day × {weight} kg = **{total_ca:.2f} {base_solution.calories_unit}/day**\n"
+            calculation_steps += f"        - {ca} mEq/kg/day × {weight} kg = **{total_ca:.2f} mEq/day**\n"
         else:
             total_ca = 0.0
             calculation_steps += f"    - **Ca量**: 計算対象外\n"
@@ -125,9 +128,9 @@ def calculate_infusion(patient: Patient, base_solution: Solution, additives: Dic
         if na is not None and total_na > 0:
             base_na_total = (base_solution.na * glucose_volume) / 1000.0  # mEq/day
             calculation_steps += f"    - **Na量計算**\n"
-            calculation_steps += f"        - ベース製剤からのNa量: {base_solution.na} {base_solution.na_unit} × {glucose_volume:.2f} mL/day ÷ 1000 = **{base_na_total:.2f} {base_solution.na_unit}/day**\n"
+            calculation_steps += f"        - ベース製剤からのNa量: {base_solution.na} {base_solution.na_unit} × {glucose_volume:.2f} mL/day ÷ 1000 = **{base_na_total:.2f} mEq/day**\n"
             additional_na = total_na - base_na_total  # mEq/day
-            calculation_steps += f"        - 追加で必要なNa量: {total_na:.2f} {base_solution.na_unit}/day - {base_na_total:.2f} {base_solution.na_unit}/day = **{additional_na:.2f} {base_solution.na_unit}/day**\n"
+            calculation_steps += f"        - 追加で必要なNa量: {total_na:.2f} mEq/day - {base_na_total:.2f} mEq/day = **{additional_na:.2f} mEq/day**\n"
         else:
             base_na_total = 0.0
             additional_na = 0.0
@@ -144,7 +147,7 @@ def calculate_infusion(patient: Patient, base_solution: Solution, additives: Dic
             phospho_na_volume = additional_na / na_per_ml_phospho  # mL
             calculation_steps += f"    - **リン酸NaからのNa計算**\n"
             calculation_steps += f"        - Na濃度: {na_per_ml_phospho} {phospho_na.na_concentration_unit}\n"
-            calculation_steps += f"        - 必要Na量: {additional_na:.2f} {base_solution.na_unit}/day ÷ {na_per_ml_phospho} mEq/mL = **{phospho_na_volume:.2f} mL**\n"
+            calculation_steps += f"        - 必要Na量: {additional_na:.2f} mEq/day ÷ {na_per_ml_phospho} mEq/mL = **{phospho_na_volume:.2f} mL**\n"
         else:
             phospho_na_volume = 0.0
             calculation_steps += f"    - **リン酸NaからのNa計算**: 計算対象外\n"
@@ -153,9 +156,9 @@ def calculate_infusion(patient: Patient, base_solution: Solution, additives: Dic
         if k is not None and total_k > 0:
             base_k_total = (base_solution.k * glucose_volume) / 1000.0  # mEq/day
             calculation_steps += f"    - **K量計算**\n"
-            calculation_steps += f"        - ベース製剤からのK量: {base_solution.k} {base_solution.k_unit} × {glucose_volume:.2f} mL/day ÷ 1000 = **{base_k_total:.2f} {base_solution.k_unit}/day**\n"
+            calculation_steps += f"        - ベース製剤からのK量: {base_solution.k} {base_solution.k_unit} × {glucose_volume:.2f} mL/day ÷ 1000 = **{base_k_total:.2f} mEq/day**\n"
             additional_k = total_k - base_k_total  # mEq/day
-            calculation_steps += f"        - 追加で必要なK量: {total_k:.2f} {base_solution.k_unit}/day - {base_k_total:.2f} {base_solution.k_unit}/day = **{additional_k:.2f} {base_solution.k_unit}/day**\n"
+            calculation_steps += f"        - 追加で必要なK量: {total_k:.2f} mEq/day - {base_k_total:.2f} mEq/day = **{additional_k:.2f} mEq/day**\n"
         else:
             base_k_total = 0.0
             additional_k = 0.0
@@ -172,7 +175,7 @@ def calculate_infusion(patient: Patient, base_solution: Solution, additives: Dic
             kcl_volume = additional_k / kcl_k_concentration  # mL
             calculation_steps += f"    - **KClからのK計算**\n"
             calculation_steps += f"        - K濃度: {kcl_k_concentration} {kcl.na_concentration_unit}\n"
-            calculation_steps += f"        - 必要K量: {additional_k:.2f} {base_solution.k_unit}/day ÷ {kcl_k_concentration} mEq/mL = **{kcl_volume:.2f} mL**\n"
+            calculation_steps += f"        - 必要K量: {additional_k:.2f} mEq/day ÷ {kcl_k_concentration} mEq/mL = **{kcl_volume:.2f} mL**\n"
         else:
             kcl_volume = 0.0
             calculation_steps += f"    - **KClからのK計算**: 計算対象外\n"
@@ -188,7 +191,7 @@ def calculate_infusion(patient: Patient, base_solution: Solution, additives: Dic
             p_volume = total_p / p_per_ml_phospho  # mL
             calculation_steps += f"    - **リン酸NaからのP計算**\n"
             calculation_steps += f"        - P濃度: {p_per_ml_phospho} {phospho_na.p_concentration_unit}\n"
-            calculation_steps += f"        - 必要P量: {total_p:.2f} {base_solution.p_unit}/day ÷ {p_per_ml_phospho} mmol/mL = **{p_volume:.2f} mL**\n"
+            calculation_steps += f"        - 必要P量: {total_p:.2f} mmol/day ÷ {p_per_ml_phospho} mmol/mL = **{p_volume:.2f} mL**\n"
         else:
             p_volume = 0.0
             calculation_steps += f"    - **リン酸NaからのP計算**: 計算対象外\n"
@@ -220,7 +223,7 @@ def calculate_infusion(patient: Patient, base_solution: Solution, additives: Dic
             ca_volume = total_ca / ca_concentration  # mL
             calculation_steps += f"    - **Ca量計算**\n"
             calculation_steps += f"        - Ca濃度: {ca_concentration} {calc_a.ca_concentration_unit}\n"
-            calculation_steps += f"        - 必要Ca量: {total_ca:.2f} {base_solution.calories_unit}/day ÷ {ca_concentration} mEq/mL = **{ca_volume:.2f} mL**\n"
+            calculation_steps += f"        - 必要Ca量: {total_ca:.2f} mEq/day ÷ {ca_concentration} mEq/mL = **{ca_volume:.2f} mL**\n"
         else:
             ca_volume = 0.0
             calculation_steps += f"    - **Ca量計算**: 計算対象外\n"
