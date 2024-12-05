@@ -1,4 +1,5 @@
 # app.py
+
 import streamlit as st
 import pandas as pd
 import io
@@ -280,37 +281,13 @@ def main():
             st.markdown(f"**計算ステップ:**\n\n{steps_formatted}")
             st.info("各計算ステップを確認してください。")
         
-        # 最終的な混合溶液の成分結論を具体的に表示
+        # 最終的な混合溶液中の各栄養素の量
         st.subheader("最終的な混合溶液中の各栄養素の量")
-        final_mix = infusion_mix.detailed_mix
-        # 各栄養素の最終溶液中の量を計算
-        nutrient_totals = {}
-        for nutrient in ['Na', 'K', 'Ca', 'P']:
-            total = 0.0
-            for sol_name, vol in final_mix.items():
-                # ベース製剤か添加剤かを判別
-                sol_obj = next((sol for sol in base_solutions if sol.name == sol_name), None)
-                if sol_obj:
-                    concentration = getattr(sol_obj, nutrient.lower(), 0)
-                    total += concentration * vol
-                else:
-                    # 添加剤の濃度を取得
-                    additive_obj = additives.get(sol_name, None)
-                    if additive_obj:
-                        if nutrient == 'Na':
-                            concentration = getattr(additive_obj, 'na_concentration', 0)
-                        elif nutrient == 'Ca':
-                            concentration = getattr(additive_obj, 'ca_concentration', 0)
-                        elif nutrient == 'P':
-                            concentration = getattr(additive_obj, 'p_concentration', 0)
-                        else:
-                            concentration = 0
-                        total += concentration * vol
-            nutrient_totals[nutrient] = total
-        
+        final_mix = infusion_mix.nutrient_totals
+        nutrient_units = infusion_mix.nutrient_units
         nutrient_df = pd.DataFrame({
-            "栄養素": list(nutrient_totals.keys()),
-            "最終溶液中の量": [f"{v:.2f}" for v in nutrient_totals.values()]
+            "栄養素": list(final_mix.keys()),
+            "最終溶液中の量": [f"{v:.2f} {nutrient_units.get(k, '')}" for k, v in final_mix.items()]
         })
         st.table(nutrient_df)
         
@@ -319,22 +296,23 @@ def main():
             # データの収集
             rows = []
             if infusion_mix.gir is not None:
-                rows.append({"項目": "GIR (mg/kg/min)", "値": infusion_mix.gir})
+                rows.append({"項目": "GIR (mg/kg/min)", "値": f"{infusion_mix.gir:.2f} mg/kg/min"})
             if infusion_mix.amino_acid is not None:
-                rows.append({"項目": "アミノ酸量 (g/kg/day)", "値": infusion_mix.amino_acid})
+                rows.append({"項目": "アミノ酸量 (g/kg/day)", "値": f"{infusion_mix.amino_acid:.2f} g/kg/day"})
             if infusion_mix.na is not None:
-                rows.append({"項目": "Na量 (mEq/kg/day)", "値": infusion_mix.na})
+                rows.append({"項目": "Na量 (mEq/kg/day)", "値": f"{infusion_mix.na:.2f} mEq/kg/day"})
             if infusion_mix.k is not None:
-                rows.append({"項目": "K量 (mEq/kg/day)", "値": infusion_mix.k})
+                rows.append({"項目": "K量 (mEq/kg/day)", "値": f"{infusion_mix.k:.2f} mEq/kg/day"})
             if infusion_mix.p is not None:
-                rows.append({"項目": "P量 (mmol/kg/day)", "値": infusion_mix.p})
+                rows.append({"項目": "P量 (mmol/kg/day)", "値": f"{infusion_mix.p:.2f} mmol/kg/day"})
             if infusion_mix.fat is not None:
-                rows.append({"項目": "脂肪量 (g/kg/day)", "値": infusion_mix.fat})
+                rows.append({"項目": "脂肪量 (g/kg/day)", "値": f"{infusion_mix.fat:.2f} g/kg/day"})
             if infusion_mix.ca is not None:
-                rows.append({"項目": "Ca量 (mEq/kg/day)", "値": infusion_mix.ca})
-            if nutrient_totals:
-                for nutrient, total in nutrient_totals.items():
-                    rows.append({"項目": f"{nutrient}量 (mEq/day)", "値": f"{total:.2f}"})
+                rows.append({"項目": "Ca量 (mEq/kg/day)", "値": f"{infusion_mix.ca:.2f} mEq/kg/day"})
+            if final_mix:
+                for nutrient, total in final_mix.items():
+                    unit = nutrient_units.get(nutrient, "")
+                    rows.append({"項目": f"{nutrient}量 ({unit})", "値": f"{total:.2f} {unit}"})
             
             # データフレームを作成
             if rows:
