@@ -10,7 +10,12 @@ class InfusionMix(BaseModel):
     p: Optional[float]
     fat: Optional[float]
     ca: Optional[float]
+    mg: Optional[float]
+    zn: Optional[float]
+    cl: Optional[float]
     detailed_mix: Dict[str, float]
     calculation_steps: str
-    nutrient_totals: Optional[Dict[str, float]] = {}  # 追加
-    nutrient_units: Optional[Dict[str, str]] = {}    # 追加
+    nutrient_totals: Optional[Dict[str, float]] = {}
+    nutrient_units: Optional[Dict[str, str]] = {}
+    input_amounts: Optional[Dict[str, float]] = {}
+    input_units: Optional[Dict[str, str]] = {}
