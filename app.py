@@ -42,26 +42,62 @@ st.markdown(
     unsafe_allow_html=True
 )
 
+def initialize_session_state():
+    # 初期値を定義
+    default_values = {
+        'gir_checkbox': True,
+        'gir_input': 7.0,
+        'amino_acid_checkbox': True,
+        'amino_acid_input': 3.0,
+        'na_checkbox': True,
+        'na_input': 2.5,
+        'k_checkbox': True,
+        'k_input': 1.5,
+        'cl_checkbox': True,
+        'cl_input': 0.0,
+        'ca_checkbox': True,
+        'ca_input': 0.0,
+        'mg_checkbox': True,
+        'mg_input': 0.0,
+        'zn_checkbox': True,
+        'zn_input': 0.0,
+        'weight': 1.31,  # 体重の初期値
+        'twi': 100.0  # TWIの初期値
+    }
+    
+    # セッション状態が初期化されていない場合のみ初期値を設定
+    for key, value in default_values.items():
+        if key not in st.session_state:
+            st.session_state[key] = value
+
+def reset_values():
+    if 'infusion_mix' in st.session_state:
+        del st.session_state['infusion_mix']
+    # 必要なキーのみをリセットするか、デフォルト値を再設定する
+    initialize_session_state()
+    st.experimental_rerun()
+
 def main():
-    st.title("TPN 配合計算アプリケーション")
-    st.markdown("---")
+    initialize_session_state()
+    
+    st.header("患者情報の入力")
     
     # ベース製剤と添加剤のロード
-    base_solutions = load_solutions()
+    solutions = load_solutions()
     additives = load_additives()
     
-    if not base_solutions or not additives:
+    if not solutions or not additives:
         st.error("データのロードに失敗しました。")
         st.stop()  # データがロードできない場合、アプリを停止
     
-    # ベース製剤の選択（フォームの外）
+    # ベース製剤の選択
     st.header("輸液製剤の選択")
     selected_solution_name = st.selectbox(
         "ベース製剤を選択してください",
-        [sol.name for sol in base_solutions],
+        [sol.name for sol in solutions],
         key="base_solution_selectbox"  # ユニークなキーを設定
     )
-    selected_solution = next((sol for sol in base_solutions if sol.name == selected_solution_name), None)
+    selected_solution = next((sol for sol in solutions if sol.name == selected_solution_name), None)
     
     # 選択されたベース製剤の組成をリアルタイムで表示
     if selected_solution:
@@ -94,182 +130,206 @@ def main():
     
     st.markdown("---")
     
-    # 患者情報と輸液製剤の選択を含むフォーム
-    with st.form(key='infusion_form'):
-        st.header("患者情報の入力")
-        
-        col1, col2 = st.columns(2)
-        
-        with col1:
-            st.subheader("基本情報")
-            weight = st.number_input(
-                "体重 (kg)",
-                min_value=0.1,
-                max_value=150.0,
-                value=1.3,
-                step=0.1,
-                help="患者の体重をkg単位で入力してください。"
-            )
-            twi = st.number_input(
-                "TWI (mL/kg/day)",
-                min_value=50.0,
-                max_value=200.0,
-                value=110.0,
-                step=1.0,
-                help="総投与量 (TWI) をmL/kg/day単位で入力してください。"
-            )
-
-            gir_included = st.checkbox("GIRを条件に含める", value=True, key="gir_checkbox")
-            gir = st.number_input(
-                "GIR (mg/kg/min)",
-                min_value=4.0,
-                max_value=10.0,
-                value=7.0,
-                step=0.1,
-                disabled=not gir_included,
-                key="gir_input",
-                help="GIRをmg/kg/min単位で入力してください。"
-            )
-
-            amino_acid_included = st.checkbox("アミノ酸量を条件に含める", value=True, key="amino_acid_checkbox")
-            amino_acid = st.number_input(
-                "アミノ酸量 (g/kg/day)",
-                min_value=2.0,
-                max_value=4.0,
-                value=3.0,
-                step=0.1,
-                disabled=not amino_acid_included,
-                key="amino_acid_input",
-                help="アミノ酸量をg/kg/day単位で入力してください。"
-            )
-        
-        with col2:
-            st.subheader("電解質 & ミネラル")
-            na_included = st.checkbox("Na量を条件に含める", value=True, key="na_checkbox")
-            na = st.number_input(
-                "Na量 (mEq/kg/day)",
-                min_value=2.0,
-                max_value=4.0,
-                value=2.5,
-                step=0.1,
-                disabled=not na_included,
-                key="na_input",
-                help="Na量をmEq/kg/day単位で入力してください。"
-            )
-
-            k_included = st.checkbox("K量を条件に含める", value=True, key="k_checkbox")
-            k = st.number_input(
-                "K量 (mEq/kg/day)",
-                min_value=1.0,
-                max_value=3.0,
-                value=1.5,
-                step=0.1,
-                disabled=not k_included,
-                key="k_input",
-                help="K量をmEq/kg/day単位で入力してください。"
-            )
-
-            cl_included = st.checkbox("Cl量を条件に含める", value=True, key="cl_checkbox")
-            cl = st.number_input(
-                "Cl量 (mEq/kg/day)",
-                min_value=0.0,
-                max_value=5.0,
-                value=0.0,
-                step=0.1,
-                disabled=not cl_included,
-                key="cl_input",
-                help="Cl量をmEq/kg/day単位で入力してください。"
-            )
-
-            ca_included = st.checkbox("Ca量を条件に含める", value=True, key="ca_checkbox")
-            ca = st.number_input(
-                "Ca量 (mEq/kg/day)",
-                min_value=0.0,
-                max_value=5.0,
-                value=0.0,
-                step=0.1,
-                disabled=not ca_included,
-                key="ca_input",
-                help="Ca量をmEq/kg/day単位で入力してください。"
-            )
-
-            mg_included = st.checkbox("Mg量を条件に含める", value=True, key="mg_checkbox")
-            mg = st.number_input(
-                "Mg量 (mEq/kg/day)",
-                min_value=0.0,
-                max_value=5.0,
-                value=0.0,
-                step=0.1,
-                disabled=not mg_included,
-                key="mg_input",
-                help="Mg量をmEq/kg/day単位で入力してください。"
-            )
-
-            zn_included = st.checkbox("Zn量を条件に含める", value=True, key="zn_checkbox")
-            zn = st.number_input(
-                "Zn量 (mmol/kg/day)",
-                min_value=0.0,
-                max_value=10.0,
-                value=0.0,
-                step=0.1,
-                disabled=not zn_included,
-                key="zn_input",
-                help="Zn量をmmol/kg/day単位で入力してください。"
-            )
-        
-        st.markdown("---")
-        # フォームの送信ボタンを配置
-        submit_button = st.form_submit_button(label='配合を計算')
+    # 患者情報の入力フォームを2列に整理
+    st.header("患者情報の入力")
+    col1, col2 = st.columns(2)
     
-        if submit_button:
-            with st.spinner('計算中...'):
-                try:
-                    # Patientオブジェクトの作成
-                    patient = Patient(
-                        weight=weight,
-                        twi=twi,
-                        gir=gir if gir_included else None,
-                        gir_included=gir_included,
-                        amino_acid=amino_acid if amino_acid_included else None,
-                        amino_acid_included=amino_acid_included,
-                        na=na if na_included else None,
-                        na_included=na_included,
-                        k=k if k_included else None,
-                        k_included=k_included,
-                        p=None,  # P量がフォームに含まれていない場合
-                        p_included=False,
-                        fat=None,  # 脂肪量がフォームに含まれていない場合
-                        fat_included=False,
-                        ca=ca if ca_included else None,
-                        ca_included=ca_included,
-                        mg=mg if mg_included else None,
-                        mg_included=mg_included,
-                        zn=zn if zn_included else None,
-                        zn_included=zn_included,
-                        cl=cl if cl_included else None,
-                        cl_included=cl_included
-                    )
-                    logging.debug(f"患者データ: {patient}")
-                    
-                    logging.debug(f"選択されたベース製剤: {selected_solution}")
-                    
-                    # 計算の実行
-                    infusion_mix = calculate_infusion(patient, selected_solution, additives)
-                    logging.debug(f"計算結果: {infusion_mix}")
-                    
-                    # 計算結果をセッションステートに保存
-                    st.session_state['infusion_mix'] = infusion_mix
-                    
-                except ValidationError as e:
-                    st.error("入力値に誤りがあります。再度確認してください。")
-                    logging.error(f"ValidationError: {e}")
-                except ValueError as ve:
-                    st.error(str(ve))
-                    logging.error(f"ValueError: {ve}")
-                except Exception as e:
-                    st.error("計算中にエラーが発���しました。詳細はログを確認してください。")
-                    logging.error(f"Unexpected error: {e}")
+    with col1:
+        st.subheader("基本情報")
+        weight = st.number_input(
+            "体重 (kg)",
+            min_value=0.1,
+            max_value=150.0,
+            # value=st.session_state.weight,  # ここを削除
+            key="weight",
+            step=0.01,
+            format="%.2f",
+            help="患者の体重をkg単位で入力してください。"
+        )
+        
+        twi = st.number_input(
+            "TWI (mL/kg/day)",
+            min_value=50.0,
+            max_value=200.0,
+            # value=st.session_state.twi,  # ここを削除
+            step=1.0,
+            help="総投与量 (TWI) をmL/kg/day単位で入力してください。",
+            key="twi"
+        )
+
+        gir_included = st.checkbox("GIRを条件に含める", key="gir_checkbox")
+        gir = st.number_input(
+            "GIR (mg/kg/min)",
+            min_value=4.0,
+            max_value=10.0,
+            # value=st.session_state.gir_input,  # ここを削除
+            disabled=not gir_included,
+            key="gir_input",
+            step=0.1,
+            help="GIRをmg/kg/min単位で入力してください。"
+        )
+        
+        amino_acid_included = st.checkbox("アミノ酸量を条件に含める", key="amino_acid_checkbox")
+        amino_acid = st.number_input(
+            "アミノ酸量 (g/kg/day)",
+            min_value=2.0,
+            max_value=4.0,
+            # value=st.session_state.amino_acid_input,  # ここを削除
+            step=0.1,
+            disabled=not amino_acid_included,
+            key="amino_acid_input",
+            help="アミノ酸量をg/kg/day単位で入力してください。"
+        )
     
+    with col2:
+        st.subheader("電解質 & ミネラル")
+        na_included = st.checkbox("Na量を条件に含める", key="na_checkbox")
+        na = st.number_input(
+            "Na量 (mEq/kg/day)",
+            min_value=2.0,
+            max_value=4.0,
+            # value=st.session_state.na_input,  # ここを削除
+            step=0.1,
+            disabled=not na_included,
+            key="na_input",
+            help="Na量をmEq/kg/day単位で入力してください。"
+        )
+
+        k_included = st.checkbox("K量を条件に含める", key="k_checkbox")
+        k = st.number_input(
+            "K量 (mEq/kg/day)",
+            min_value=1.0,
+            max_value=3.0,
+            # value=st.session_state.k_input,  # ここを削除
+            step=0.1,
+            disabled=not k_included,
+            key="k_input",
+            help="K量をmEq/kg/day単位で入力してください。"
+        )
+
+        cl_included = st.checkbox("Cl量を条件に含める", key="cl_checkbox")
+        cl = st.number_input(
+            "Cl量 (mEq/kg/day)",
+            min_value=0.0,
+            max_value=5.0,
+            # value=st.session_state.cl_input,  # ここを削除
+            step=0.1,
+            disabled=not cl_included,
+            key="cl_input",
+            help="Cl量をmEq/kg/day単位で入力してください。"
+        )
+
+        ca_included = st.checkbox("Ca量を条件に含める", key="ca_checkbox")
+        ca = st.number_input(
+            "Ca量 (mEq/kg/day)",
+            min_value=0.0,
+            max_value=5.0,
+            # value=st.session_state.ca_input,  # ここを削除
+            step=0.1,
+            disabled=not ca_included,
+            key="ca_input",
+            help="Ca量をmEq/kg/day単位で入力してください。"
+        )
+
+        mg_included = st.checkbox("Mg量を条件に含める", key="mg_checkbox")
+        mg = st.number_input(
+            "Mg量 (mEq/kg/day)",
+            min_value=0.0,
+            max_value=5.0,
+            # value=st.session_state.mg_input,  # ここを削除
+            step=0.1,
+            disabled=not mg_included,
+            key="mg_input",
+            help="Mg量をmEq/kg/day単位で入力してください。"
+        )
+
+        zn_included = st.checkbox("Zn量を条件に含める", key="zn_checkbox")
+        zn = st.number_input(
+            "Zn量 (mmol/kg/day)",
+            min_value=0.0,
+            max_value=10.0,
+            # value=st.session_state.zn_input,  # ここを削除
+            step=0.1,
+            disabled=not zn_included,
+            key="zn_input",
+            help="Zn量をmmol/kg/day単位で入力してください。"
+        )
+
+    # ボタンの配置
+    st.markdown("---")
+    button_cols = st.columns([1, 1, 4])
+    with button_cols[0]:
+        if st.button('リセット', 
+                    type="secondary",
+                    use_container_width=True):
+            reset_values()
+    
+    with button_cols[1]:
+        calculate_button = st.button('配合を計算',
+                                   type="primary",
+                                   use_container_width=True)
+
+    # カスタムCSSでボタンのスタイルを調整
+    st.markdown("""
+        <style>
+        div.stButton > button:first-child {
+            font-weight: bold;
+            padding: 0.5rem 1rem;
+            height: 3em;
+        }
+        </style>
+        """, unsafe_allow_html=True)
+
+    # 計算ボタンの処理
+    if calculate_button:
+        with st.spinner('計算中...'):
+            try:
+                # Patientオブジェクトの作成
+                patient = Patient(
+                    weight=weight,
+                    twi=twi,
+                    gir=gir if gir_included else None,
+                    gir_included=gir_included,
+                    amino_acid=amino_acid if amino_acid_included else None,
+                    amino_acid_included=amino_acid_included,
+                    na=na if na_included else None,
+                    na_included=na_included,
+                    k=k if k_included else None,
+                    k_included=k_included,
+                    p=None,
+                    p_included=False,
+                    fat=None,
+                    fat_included=False,
+                    ca=ca if ca_included else None,
+                    ca_included=ca_included,
+                    mg=mg if mg_included else None,
+                    mg_included=mg_included,
+                    zn=zn if zn_included else None,
+                    zn_included=zn_included,
+                    cl=cl if cl_included else None,
+                    cl_included=cl_included
+                )
+                
+                logging.debug(f"患者データ: {patient}")
+                logging.debug(f"選択されたベース製剤: {selected_solution}")
+                
+                # 計算の実行
+                infusion_mix = calculate_infusion(patient, selected_solution, additives)
+                logging.debug(f"計算結果: {infusion_mix}")
+                
+                # 計算結果をセッションステートに保存
+                st.session_state['infusion_mix'] = infusion_mix
+                
+            except ValidationError as e:
+                st.error("入力値に誤りがあります。再度確認してください。")
+                logging.error(f"ValidationError: {e}")
+            except ValueError as ve:
+                st.error(str(ve))
+                logging.error(f"ValueError: {ve}")
+            except Exception as e:
+                st.error("計算中にエラーが発生しました。詳細はログを確認してください。")
+                logging.error(f"Unexpected error: {e}")
+
     # 計算結果の表示はフォームの外に配置
     if 'infusion_mix' in st.session_state and st.session_state['infusion_mix'] is not None:
         infusion_mix = st.session_state['infusion_mix']
