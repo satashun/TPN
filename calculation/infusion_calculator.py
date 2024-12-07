@@ -1,4 +1,5 @@
 # calculation/infusion_calculator.py
+
 from models.patient import Patient
 from models.solution import Solution
 from models.additive import Additive
@@ -22,9 +23,6 @@ def calculate_infusion(patient: Patient, base_solution: Solution, additives: Dic
         logging.debug(f"患者データ: {patient}")
         logging.debug(f"選択されたベース製剤: {base_solution}")
         logging.debug(f"選択された添加剤: {additives}")
-
-        # ベース製剤を selected_solution として保存
-        selected_solution = base_solution
 
         calculation_steps = ""
         step = 1  # メインステップ番号の初期化
@@ -206,6 +204,7 @@ def calculate_infusion(patient: Patient, base_solution: Solution, additives: Dic
 
         # リン酸NaからのNaとPの計算
         phospho_na_volume = 0.0
+        p_volume = 0.0
         if na is not None and additional_na > 0:
             if "リン酸Na" not in additives:
                 raise ValueError("'リン酸Na' が additives.json に定義されていません。")
@@ -218,11 +217,10 @@ def calculate_infusion(patient: Patient, base_solution: Solution, additives: Dic
             calculation_steps += f"    - **リン酸NaからのNa計算**\n"
             calculation_steps += f"        - Na濃度: {na_per_ml_phospho} {phospho_na.na_concentration_unit}\n"
             calculation_steps += f"        - 必要Na量: {additional_na:.2f} mEq/day ÷ {na_per_ml_phospho} mEq/mL = **{phospho_na_volume:.2f} mL**\n"
-        else:
-            phospho_na_volume = 0.0
-            calculation_steps += f"    - **リン酸NaからのNa計算**: 計算対象外\n"
-
+        
         if p is not None and total_p > 0:
+            if phospho_na_volume == 0.0:
+                raise ValueError("リン酸Naの量が計算されていません。")
             p_volume = total_p / p_per_ml_phospho  # mL
             calculation_steps += f"    - **リン酸NaからのP計算**\n"
             calculation_steps += f"        - P濃度: {p_per_ml_phospho} {phospho_na.p_concentration_unit}\n"
@@ -405,7 +403,7 @@ def calculate_infusion(patient: Patient, base_solution: Solution, additives: Dic
         step += 1
         detailed_mix = {}
         if glucose_volume > 0:
-            detailed_mix[base_solution.name] = glucose_volume  # selected_solution の代わりに base_solution を使用
+            detailed_mix[base_solution.name] = glucose_volume
         if amino_acid_volume > 0:
             detailed_mix["プレアミンP"] = amino_acid_volume
         if phospho_na_volume > 0:
@@ -466,16 +464,16 @@ def calculate_infusion(patient: Patient, base_solution: Solution, additives: Dic
 
         # 計算
         for sol_name, vol in detailed_mix.items():
-            if sol_name == selected_solution.name:
+            if sol_name == base_solution.name:
                 # ベース製剤からの栄養素
-                nutrient_totals['Na'] += get_safe_concentration(selected_solution, 'na') * vol / 1000.0  # mEq/L to mEq/mL
-                nutrient_totals['K'] += get_safe_concentration(selected_solution, 'k') * vol / 1000.0
-                nutrient_totals['Cl'] += get_safe_concentration(selected_solution, 'cl') * vol / 1000.0
-                nutrient_totals['P'] += get_safe_concentration(selected_solution, 'p') * vol / 1000.0
-                nutrient_totals['Glucose'] += (get_safe_concentration(selected_solution, 'glucose_percentage') * vol) / 100.0  # g/L to g/mL
-                nutrient_totals['Mg'] += get_safe_concentration(selected_solution, 'mg') * vol / 1000.0
-                nutrient_totals['Ca'] += get_safe_concentration(selected_solution, 'ca') * vol / 1000.0
-                nutrient_totals['Zn'] += get_safe_concentration(selected_solution, 'zn') * vol / 1000.0
+                nutrient_totals['Na'] += get_safe_concentration(base_solution, 'na') * vol / 1000.0  # mEq/L to mEq/mL
+                nutrient_totals['K'] += get_safe_concentration(base_solution, 'k') * vol / 1000.0
+                nutrient_totals['Cl'] += get_safe_concentration(base_solution, 'cl') * vol / 1000.0
+                nutrient_totals['P'] += get_safe_concentration(base_solution, 'p') * vol / 1000.0
+                nutrient_totals['Glucose'] += (get_safe_concentration(base_solution, 'glucose_percentage') * vol) / 100.0  # g/L to g/mL
+                nutrient_totals['Mg'] += get_safe_concentration(base_solution, 'mg') * vol / 1000.0
+                nutrient_totals['Ca'] += get_safe_concentration(base_solution, 'ca') * vol / 1000.0
+                nutrient_totals['Zn'] += get_safe_concentration(base_solution, 'zn') * vol / 1000.0
             else:
                 additive = additives.get(sol_name)
                 if additive:
