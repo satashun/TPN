@@ -1,25 +1,24 @@
 # models/additive.py
 
 from pydantic import BaseModel
-from typing import Optional
 
 class Additive(BaseModel):
     name: str
-    amino_acid_concentration: Optional[float] = 0.0  # g/mL
-    amino_acid_concentration_unit: Optional[str] = "g/mL"
-    zn_concentration: Optional[float] = 0.0          # mmol/mL
-    zn_concentration_unit: Optional[str] = "mmol/mL"
-    na_concentration: Optional[float] = 0.0          # mEq/mL
-    na_concentration_unit: Optional[str] = "mEq/mL"
-    p_concentration: Optional[float] = 0.0           # mmol/mL
-    p_concentration_unit: Optional[str] = "mmol/mL"
-    k_concentration: Optional[float] = 0.0           # mEq/mL
-    k_concentration_unit: Optional[str] = "mEq/mL"
-    cl_concentration: Optional[float] = 0.0          # mEq/mL
-    cl_concentration_unit: Optional[str] = "mEq/mL"
-    ca_concentration: Optional[float] = 0.0          # mEq/mL
-    ca_concentration_unit: Optional[str] = "mEq/mL"
-    mg_concentration: Optional[float] = 0.0          # mEq/mL
-    mg_concentration_unit: Optional[str] = "mEq/mL"
-    fat_concentration: Optional[float] = 0.0         # g/mL
-    fat_concentration_unit: Optional[str] = "g/mL"
+    amino_acid_concentration: float
+    amino_acid_concentration_unit: str
+    zn_concentration: float
+    zn_concentration_unit: str
+    na_concentration: float
+    na_concentration_unit: str
+    p_concentration: float
+    p_concentration_unit: str
+    k_concentration: float
+    k_concentration_unit: str
+    cl_concentration: float
+    cl_concentration_unit: str
+    ca_concentration: float
+    ca_concentration_unit: str
+    mg_concentration: float
+    mg_concentration_unit: str
+    fat_concentration: float
+    fat_concentration_unit: str

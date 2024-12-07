@@ -1,22 +1,22 @@
 # models/infusion_mix.py
 
 from pydantic import BaseModel
-from typing import Dict, Optional
+from typing import Optional, Dict
 
 class InfusionMix(BaseModel):
-    gir: Optional[float]  # mg/kg/min
-    amino_acid: Optional[float]  # g/kg/day
-    na: Optional[float]  # mEq/kg/day
-    k: Optional[float]  # mEq/kg/day
-    p: Optional[float]  # mmol/kg/day
-    fat: Optional[float]  # g/kg/day
-    ca: Optional[float]  # mEq/kg/day
-    mg: Optional[float]  # mEq/kg/day
-    zn: Optional[float]  # mmol/kg/day
-    cl: Optional[float]  # mEq/kg/day
-    detailed_mix: Dict[str, float]  # 製剤名: mL/day
+    gir: Optional[float] = None
+    amino_acid: Optional[float] = None
+    na: Optional[float] = None
+    k: Optional[float] = None
+    p: Optional[float] = None
+    fat: Optional[float] = None
+    ca: Optional[float] = None
+    mg: Optional[float] = None
+    zn: Optional[float] = None
+    cl: Optional[float] = None
+    detailed_mix: Dict[str, float]
     calculation_steps: str
-    nutrient_totals: Dict[str, float]  # 各栄養素の総量
-    nutrient_units: Dict[str, str]  # 各栄養素の単位
+    nutrient_totals: Dict[str, float]
+    nutrient_units: Dict[str, str]
     input_amounts: Dict[str, float]
     input_units: Dict[str, str]
