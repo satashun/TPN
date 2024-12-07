@@ -4,6 +4,7 @@ import streamlit as st
 import pandas as pd
 from pydantic import ValidationError
 import logging
+
 from models.patient import Patient
 from models.solution import Solution
 from models.additive import Additive
@@ -25,7 +26,7 @@ def initialize_session_state():
     defaults = {
         'gir_checkbox': True,
         'gir_input': 7.0,
-        'amino_acid_checkbox': True,
+        'amino_acid_checkbox': False, # デフォルトOFF
         'amino_acid_input': 3.0,
         'na_checkbox': True,
         'na_input': 2.5,
@@ -33,7 +34,6 @@ def initialize_session_state():
         'k_input': 1.5,
         'cl_checkbox': True,
         'cl_input': 0.0,
-        # Zn, Mg, Ca, Fatを初期値オフ
         'ca_checkbox': False,
         'ca_input': 0.0,
         'mg_checkbox': False,
@@ -42,7 +42,7 @@ def initialize_session_state():
         'zn_input': 0.0,
         'fat_checkbox': False,
         'fat_input': 0.0,
-        'weight': 1.50,  # 初期値を1.50kgに
+        'weight': 1.50,
         'twi': 110.0,
         'selected_solution': None,
         'patient': None,
@@ -78,8 +78,8 @@ def create_patient_object():
         na_included=st.session_state.na_checkbox,
         k=st.session_state.k_input if st.session_state.k_checkbox else None,
         k_included=st.session_state.k_checkbox,
-        p=None,
-        p_included=False,
+        p=st.session_state.p_input if hasattr(st.session_state, 'p_input') else None,
+        p_included=st.session_state.p_checkbox if hasattr(st.session_state, 'p_checkbox') else False,
         fat=st.session_state.fat_input if st.session_state.fat_checkbox else None,
         fat_included=st.session_state.fat_checkbox,
         ca=st.session_state.ca_input if st.session_state.ca_checkbox else None,
@@ -92,23 +92,48 @@ def create_patient_object():
         cl_included=st.session_state.cl_checkbox
     )
 
-def show_metric(label, input_val, unit, result_val):
-    if input_val is not None and result_val is not None:
-        diff = result_val - input_val
-        if diff > 0:
-            status = "過剰"
-        elif diff < 0:
-            status = "不足"
+def convert_target_actual_with_extra_columns(target, actual, unit, weight):
+    if target is None and actual is None:
+        return (None,None,None,None)
+
+    if unit == "mg/kg/min":
+        # target
+        if target is not None:
+            per_kg_day_t = target*1440 # mg/kg/day
+            total_mg_day_t = per_kg_day_t*weight
+            total_g_day_t = total_mg_day_t/1000
         else:
-            status = "適正"
-        st.metric(label, f"{result_val:.2f} {unit}", f"{diff:+.2f} ({status})")
+            per_kg_day_t = None
+            total_g_day_t = None
+
+        # actual
+        if actual is not None:
+            per_kg_day_a = actual*1440
+            total_mg_day_a = per_kg_day_a*weight
+            total_g_day_a = total_mg_day_a/1000
+        else:
+            per_kg_day_a = None
+            total_g_day_a = None
+
+        # return per_kg_day and total/day
+        # t_perkg, a_perkg, t_total, a_total
+        return (per_kg_day_t, per_kg_day_a, total_g_day_t, total_g_day_a)
+    else:
+        # per kg/day系
+        if target is not None:
+            t_total = target*weight
+        else:
+            t_total = None
+        if actual is not None:
+            a_total = actual*weight
+        else:
+            a_total = None
+        return (target, actual, t_total, a_total)
 
 def main():
     initialize_session_state()
     
     st.title("Neonatal TPN 配合計算ツール")
-    # 指示により以下の説明ブロックは削除しました。
-    
     st.markdown("---")
     st.header("ベース製剤選択")
 
@@ -153,7 +178,7 @@ def main():
         gir_included = st.checkbox("GIR条件", key="gir_checkbox")
         if gir_included:
             st.number_input("GIR (mg/kg/min)", min_value=4.0, max_value=10.0, step=0.1, key="gir_input")
-        amino_acid_included = st.checkbox("アミノ酸条件", key="amino_acid_checkbox")
+        amino_acid_included = st.checkbox("アミノ酸条件", key="amino_acid_checkbox", value=False)
         if amino_acid_included:
             st.number_input("アミノ酸量 (g/kg/day)", min_value=2.0, max_value=4.0, step=0.1, key="amino_acid_input")
         fat_included = st.checkbox("脂肪条件", key="fat_checkbox")
@@ -204,21 +229,25 @@ def main():
             except Exception as e:
                 st.error(f"計算中にエラーが発生しました: {e}")
 
-    # 結果表示
-    if st.session_state.infusion_mix and st.session_state.patient:
-        infusion_mix = st.session_state.infusion_mix
-        patient = st.session_state.patient
+    if 'infusion_mix' in st.session_state and st.session_state['infusion_mix'] is not None:
+        infusion_mix = st.session_state['infusion_mix']
+        patient = st.session_state['patient']
         
         st.markdown("---")
         st.header("計算結果")
-        
-        # 目標 vs 実測テーブル
-        target_vs_actual_data = []
-        def add_row(name, target, actual, unit):
-            diff = actual - target if (target is not None and actual is not None) else None
-            target_str = f"{target:.2f}" if target is not None else "-"
-            actual_str = f"{actual:.2f}" if actual is not None else "-"
-            if diff is not None:
+
+        # total_volをここで定義
+        total_vol = sum(infusion_mix.detailed_mix.values())
+        w = patient.weight
+
+        # 目標 vs 実測 テーブル
+        target_actual_data = []
+
+        def add_target_actual_row(name, target_val, actual_val, unit, weight):
+            t_perkg, a_perkg, t_total, a_total = convert_target_actual_with_extra_columns(target_val, actual_val, unit, weight)
+            diff_str = "-"
+            if t_perkg is not None and a_perkg is not None:
+                diff = a_perkg - t_perkg
                 if diff > 0:
                     status = "過剰"
                 elif diff < 0:
@@ -226,92 +255,116 @@ def main():
                 else:
                     status = "適正"
                 diff_str = f"{diff:+.2f} ({status})"
-            else:
-                diff_str = "-"
-            target_vs_actual_data.append([name, target_str, actual_str, diff_str])
-        
-        total_twi = patient.twi * patient.weight
-        total_vol = sum(infusion_mix.detailed_mix.values())
-        add_row("TWI (mL/day)", total_twi, total_vol, "mL/day")
+            target_str = f"{target_val:.2f} {unit}" if target_val is not None else "-"
+            actual_str = f"{actual_val:.2f} {unit}" if actual_val is not None else "-"
+            t_total_str = f"{t_total:.2f}" if t_total is not None else "-"
+            a_total_str = f"{a_total:.2f}" if a_total is not None else "-"
+            target_actual_data.append([name, target_str, actual_str, a_total_str, diff_str])
+
+        # TWI: 目標はmL/kg/day、実測はtotal_vol(mL/day)なので per kg/dayは total_vol/weight
+        add_target_actual_row("TWI (mL/day)", patient.twi, total_vol/w, "mL/kg/day", w)
         if patient.gir_included:
-            add_row("GIR (mg/kg/min)", patient.gir, infusion_mix.gir, "mg/kg/min")
+            add_target_actual_row("GIR", patient.gir, infusion_mix.gir, "mg/kg/min", w)
         if patient.amino_acid_included:
-            add_row("アミノ酸量 (g/kg/day)", patient.amino_acid, infusion_mix.amino_acid, "g/kg/day")
+            add_target_actual_row("アミノ酸", patient.amino_acid, infusion_mix.amino_acid, "g/kg/day", w)
         if patient.na_included:
-            add_row("Na量 (mEq/kg/day)", patient.na, infusion_mix.na, "mEq/kg/day")
+            add_target_actual_row("Na", patient.na, infusion_mix.na, "mEq/kg/day", w)
         if patient.k_included:
-            add_row("K量 (mEq/kg/day)", patient.k, infusion_mix.k, "mEq/kg/day")
+            add_target_actual_row("K", patient.k, infusion_mix.k, "mEq/kg/day", w)
         if patient.cl_included:
-            add_row("Cl量 (mEq/kg/day)", patient.cl, infusion_mix.cl, "mEq/kg/day")
+            add_target_actual_row("Cl", patient.cl, infusion_mix.cl, "mEq/kg/day", w)
         if patient.ca_included:
-            add_row("Ca量 (mEq/kg/day)", patient.ca, infusion_mix.ca, "mEq/kg/day")
+            add_target_actual_row("Ca", patient.ca, infusion_mix.ca, "mEq/kg/day", w)
         if patient.mg_included:
-            add_row("Mg量 (mEq/kg/day)", patient.mg, infusion_mix.mg, "mEq/kg/day")
+            add_target_actual_row("Mg", patient.mg, infusion_mix.mg, "mEq/kg/day", w)
         if patient.zn_included:
-            add_row("Zn量 (mmol/kg/day)", patient.zn, infusion_mix.zn, "mmol/kg/day")
+            add_target_actual_row("Zn", patient.zn, infusion_mix.zn, "mmol/kg/day", w)
         if patient.fat_included:
-            add_row("脂肪量 (g/kg/day)", patient.fat, infusion_mix.fat, "g/kg/day")
-        
-        target_vs_actual_df = pd.DataFrame(target_vs_actual_data, columns=["項目", "目標", "実測", "差分"])
+            add_target_actual_row("脂肪", patient.fat, infusion_mix.fat, "g/kg/day", w)
+
+        target_vs_actual_df = pd.DataFrame(target_actual_data, columns=["項目", "目標(×/kg/day)", "実測(×/kg/day)", "実測(total/day)", "差分(×/kg/day)"])
         st.subheader("目標 vs 実測")
         st.table(target_vs_actual_df)
-        
-        # 配合量詳細テーブル
-        st.subheader("配合量の詳細 (mL/dayと成分量)")
-        
-        components = ['Na', 'K', 'Cl', 'Ca', 'Mg', 'Zn', 'P', 'Amino Acids', 'Fats', 'Glucose']
-        table_headers = ["製剤名", "mL/day"] + [f"{comp}量" for comp in components]
-        
-        table_data = []
-        total_components = {comp: 0.0 for comp in components}
 
-        for additive_name, volume in infusion_mix.detailed_mix.items():
-            additive = additives.get(additive_name)
-            if not additive:
-                continue
-            row = [additive_name, f"{volume:.2f}"]
-            for comp in components:
-                if comp == "Amino Acids":
-                    conc = getattr(additive, 'amino_acid_concentration', 0.0)
-                elif comp == "Fats":
-                    conc = getattr(additive, 'fat_concentration', 0.0)
-                elif comp == "Glucose":
-                    conc = getattr(additive, 'glucose_percentage', 0.0) / 100.0
-                else:
-                    attr = f"{comp.lower()}_concentration"
-                    conc = getattr(additive, attr, 0.0)
-                
-                amount = volume * conc
-                if comp in ["Amino Acids", "Fats", "Glucose"]:
-                    # g/day表示
-                    unit = "g/day" if comp != "Glucose" else "g/day"
-                elif comp in ["Zn", "P"]:
-                    # mmol/day表示
-                    unit = "mmol/day"
-                else:
-                    # mEq/day表示
-                    unit = "mEq/day"
-                display_amount = f"{amount:.2f} {unit}"
-                row.append(display_amount)
-                total_components[comp] += amount
-            table_data.append(row)
-        
-        # 合計行
-        totals = ["合計", f"{sum(infusion_mix.detailed_mix.values()):.2f}"]
-        for comp in components:
-            if comp in ["Amino Acids", "Fats", "Glucose"]:
-                display_unit = "g/day"
-            elif comp in ["Zn", "P"]:
-                display_unit = "mmol/day"
+        # 以下「配合量の詳細」テーブルは前回と同じロジックのため省略せず再掲
+
+        components = ['Na', 'K', 'Cl', 'Ca', 'Mg', 'Zn', 'P', 'Amino Acids', 'Fats', 'Glucose']
+        table_headers = ["製剤名", "mL/day"] + components
+
+        def conv(value, unit, volume):
+            if "/L" in unit:
+                return value*(volume/1000.0)
+            elif "/mL" in unit:
+                return value*volume
             else:
-                display_unit = "mEq/day"
-            totals.append(f"{total_components[comp]:.2f} {display_unit}")
-        
+                # g/Lなど基本/L表記あるはず
+                return value*(volume/1000.0)
+
+        def get_solution_nutrients(solution:Solution, volume:float):
+            na = conv(solution.na, solution.na_unit, volume)
+            k = conv(solution.k, solution.k_unit, volume)
+            cl = conv(solution.cl, solution.cl_unit, volume)
+            p = conv(solution.p, solution.p_unit, volume)
+            mg = conv(solution.mg, solution.mg_unit, volume)
+            ca = conv(solution.ca, solution.ca_unit, volume)
+            zn = conv(solution.zn, solution.zn_unit, volume)
+            glc = conv(solution.glucose_percentage, solution.glucose_unit, volume)
+            fat = 0.0
+            amino=0.0
+            return {'Na':na, 'K':k, 'Cl':cl, 'Ca':ca, 'Mg':mg, 'Zn':zn, 'P':p, 'Amino Acids':amino,'Fats':fat,'Glucose':glc}
+
+        def get_additive_nutrients(add:Additive, volume:float):
+            na = conv(add.na_concentration, add.na_concentration_unit, volume)
+            k = conv(add.k_concentration, add.k_concentration_unit, volume)
+            cl = conv(add.cl_concentration, add.cl_concentration_unit, volume)
+            ca = conv(add.ca_concentration, add.ca_concentration_unit, volume)
+            mg = conv(add.mg_concentration, add.mg_concentration_unit, volume)
+            zn = conv(add.zn_concentration, add.zn_concentration_unit, volume)
+            p = conv(add.p_concentration, add.p_concentration_unit, volume)
+            amino = conv(add.amino_acid_concentration, add.amino_acid_concentration_unit, volume)
+            fat = conv(add.fat_concentration, add.fat_concentration_unit, volume)
+            glc = 0.0
+            return {'Na':na, 'K':k, 'Cl':cl, 'Ca':ca, 'Mg':mg, 'Zn':zn, 'P':p, 'Amino Acids':amino,'Fats':fat,'Glucose':glc}
+
+        def get_special_glucose(percentage_str,volume):
+            # 50%ブドウ糖液0.5 g/mL
+            val=0.5
+            return {'Na':0,'K':0,'Cl':0,'Ca':0,'Mg':0,'Zn':0,'P':0,'Amino Acids':0,'Fats':0,'Glucose':val*volume}
+
+        def get_dist_nutrients(additive_name, volume, solutions, additives):
+            if additive_name.startswith("ベース製剤（"):
+                sol_name = additive_name.replace("ベース製剤（","").replace("）","")
+                sol = next((s for s in solutions if s.name == sol_name), None)
+                return get_solution_nutrients(sol, volume)
+            elif additive_name in additives:
+                return get_additive_nutrients(additives[additive_name], volume)
+            elif additive_name == "50%ブドウ糖液":
+                return get_special_glucose("50%", volume)
+            elif additive_name == "蒸留水":
+                return {c:0.0 for c in components}
+            else:
+                return {c:0.0 for c in components}
+
+        table_data = []
+        total_components_dict = {c:0.0 for c in components}
+
+        for additive_name, vol in infusion_mix.detailed_mix.items():
+            row = [additive_name, f"{vol:.2f}"]
+            nut = get_dist_nutrients(additive_name, vol, solutions, additives)
+            for c in components:
+                val = nut[c]
+                row.append(f"{val:.2f}")
+                total_components_dict[c]+=val
+            table_data.append(row)
+
+        totals = ["合計", f"{sum(infusion_mix.detailed_mix.values()):.2f}"]
+        for c in components:
+            totals.append(f"{total_components_dict[c]:.2f}")
         table_data.append(totals)
-        
+
         infusion_detail_df = pd.DataFrame(table_data, columns=table_headers)
-        st.table(infusion_detail_df)
-        
+        st.dataframe(infusion_detail_df.style.set_properties(**{'text-align': 'left'}))
+
         with st.expander("詳細計算ステップを表示"):
             steps_formatted = infusion_mix.calculation_steps.replace("\n", "\n")
             st.markdown(f"**計算ステップ:**\n\n{steps_formatted}")
