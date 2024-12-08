@@ -19,7 +19,8 @@
         "ca_unit": "mEq/L",
         "zn": 0.0,
         "zn_unit": "mmol/L",
-        "fat_concentration": 0.0
+        "fat_concentration": 0.0,
+        "fat_concentration_unit": "g/mL"
     },
     {
         "name": "ソルデム3A",
@@ -41,7 +42,8 @@
         "ca_unit": "mEq/L",
         "zn": 0.0,
         "zn_unit": "mmol/L",
-        "fat_concentration": 0.0
+        "fat_concentration": 0.0,
+        "fat_concentration_unit": "g/mL"
     },
     {
         "name": "ソリタックス",
@@ -63,7 +65,8 @@
         "ca_unit": "mEq/L",
         "zn": 0.0,
         "zn_unit": "mmol/L",
-        "fat_concentration": 0.0
+        "fat_concentration": 0.0,
+        "fat_concentration_unit": "g/mL"
     },
     {
         "name": "リハビックスK2",
@@ -85,7 +88,8 @@
         "ca_unit": "mEq/L",
         "zn": 10.0,
         "zn_unit": "mmol/L",
-        "fat_concentration": 0.0
+        "fat_concentration": 0.0,
+        "fat_concentration_unit": "g/mL"
     },
     {
         "name": "10%ブドウ糖液",
@@ -107,7 +111,8 @@
         "ca_unit": "mEq/L",
         "zn": 0.0,
         "zn_unit": "mmol/L",
-        "fat_concentration": 0.0
+        "fat_concentration": 0.0,
+        "fat_concentration_unit": "g/mL"
     },
     {
         "name": "20%ブドウ糖液",
@@ -129,7 +134,8 @@
         "ca_unit": "mEq/L",
         "zn": 0.0,
         "zn_unit": "mmol/L",
-        "fat_concentration": 0.0
+        "fat_concentration": 0.0,
+        "fat_concentration_unit": "g/mL"
     },
     {
         "name": "50%ブドウ糖液",
@@ -151,7 +157,8 @@
         "ca_unit": "mEq/L",
         "zn": 0.0,
         "zn_unit": "mmol/L",
-        "fat_concentration": 0.0
+        "fat_concentration": 0.0,
+        "fat_concentration_unit": "g/mL"
     },
     {
         "name": "蒸留水",
@@ -173,6 +180,7 @@
         "ca_unit": "mEq/L",
         "zn": 0.0,
         "zn_unit": "mmol/L",
-        "fat_concentration": 0.0
+        "fat_concentration": 0.0,
+        "fat_concentration_unit": "g/mL"
     }
 ]

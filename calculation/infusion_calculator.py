@@ -6,254 +6,205 @@ from models.additive import Additive
 from models.infusion_mix import InfusionMix
 from typing import Dict
 import logging
+import pulp
 
-def get_safe_concentration(obj: object, attribute: str, default=0.0) -> float:
+def get_nutrient_contribution(nutrient: str, solution: Solution) -> float:
     """
-    指定されたオブジェクトから濃度を安全に取得します。
+    製剤から特定の栄養素への貢献度を返す。
+    単位はg/day, mEq/day, mmol/dayなどで統一。
     """
-    concentration = getattr(obj, attribute, default)
-    if concentration is None:
-        logging.warning(f"{attribute} for {obj.name if hasattr(obj,'name') else obj} is None. Setting to {default}.")
-        return default
-    return concentration
+    mapping = {
+        'Glucose': solution.glucose_percentage / 100.0,  # g/mL
+        'Na': solution.na / 1000.0,                      # mEq/mL
+        'K': solution.k / 1000.0,                        # mEq/mL
+        'Cl': solution.cl / 1000.0,                      # mEq/mL
+        'Ca': solution.ca / 1000.0,                      # mEq/mL
+        'Mg': solution.mg / 1000.0,                      # mEq/mL
+        'Zn': solution.zn / 1000.0,                      # mmol/mL
+        'P': solution.p / 1000.0,                        # mmol/mL
+        'Amino Acids': 0.0,                              # ベース製剤には含まれないと仮定
+        'Fats': 0.0                                       # ベース製剤には含まれないと仮定
+    }
+    return mapping.get(nutrient, 0.0)
 
-def calc_requirement(value: float, included: bool, label: str, unit: str, weight: float) -> (float, str):
+def get_additive_nutrient_contribution(nutrient: str, additive: Additive) -> float:
     """
-    栄養素の必要量を計算し、計算ステップのログを生成します。
+    添加剤から特定の栄養素への貢献度を返す。
+    単位はg/day, mEq/day, mmol/dayなどで統一。
     """
-    if included and value is not None:
-        req = value * weight
-        step = f"    - **{label}計算**\n        - {label}: {value} {unit} × {weight} kg = {req:.2f} {unit.replace('/kg/day','/day')}\n"
-        return req, step
-    else:
-        step = f"    - **{label}計算**: 計算対象外\n"
-        return 0.0, step
+    mapping = {
+        'Glucose': 0.0,  # 添加剤には含まれないと仮定
+        'Na': additive.na_concentration,          # mEq/mL
+        'K': additive.k_concentration,            # mEq/mL
+        'Cl': additive.cl_concentration,          # mEq/mL
+        'Ca': additive.ca_concentration,          # mEq/mL
+        'Mg': additive.mg_concentration,          # mEq/mL
+        'Zn': additive.zn_concentration,          # mmol/mL
+        'P': additive.p_concentration,            # mmol/mL
+        'Amino Acids': additive.amino_acid_concentration,  # g/mL
+        'Fats': additive.fat_concentration         # g/mL
+    }
+    return mapping.get(nutrient, 0.0)
 
-def required_volume(additional: float, concentration: float, additive_name: str) -> float:
+def get_nutrient_unit(nutrient: str) -> str:
     """
-    添加剤の必要量を計算します。
+    栄養素の単位を返す。
     """
-    if concentration > 0:
-        return additional / concentration
-    else:
-        raise ValueError(f"{additive_name}の濃度が0です。")
+    units = {
+        'Glucose': 'g/day',
+        'Amino Acids': 'g/day',
+        'Na': 'mEq/day',
+        'K': 'mEq/day',
+        'Cl': 'mEq/day',
+        'Ca': 'mEq/day',
+        'Mg': 'mEq/day',
+        'Zn': 'mmol/day',
+        'P': 'mmol/day',
+        'Fats': 'g/day'
+    }
+    return units.get(nutrient, '')
 
 def calculate_infusion(patient: Patient, base_solution: Solution, additives: Dict[str, Additive]) -> InfusionMix:
-    """
-    患者のデータとベース製剤、添加剤データを元にTPN配合を計算します。
-    """
     try:
         logging.info("計算開始")
         logging.debug(f"患者データ: {patient}")
         logging.debug(f"選択されたベース製剤: {base_solution}")
         logging.debug(f"選択された添加剤: {additives}")
 
-        calculation_steps = "1. **投与量の計算**\n"
+        # 目標栄養素の設定
+        targets = {
+            'Glucose': 0.0,  # GIRから計算後に設定
+            'Amino Acids': patient.amino_acid * patient.weight if patient.amino_acid_included and patient.amino_acid else 0.0,  # g/day
+            'Na': patient.na * patient.weight if patient.na_included and patient.na else 0.0,  # mEq/day
+            'K': patient.k * patient.weight if patient.k_included and patient.k else 0.0,  # mEq/day
+            'Cl': patient.cl * patient.weight if patient.cl_included and patient.cl else 0.0,  # mEq/day
+            'Ca': patient.ca * patient.weight if patient.ca_included and patient.ca else 0.0,  # mEq/day
+            'Mg': patient.mg * patient.weight if patient.mg_included and patient.mg else 0.0,  # mEq/day
+            'Zn': patient.zn * patient.weight if patient.zn_included and patient.zn else 0.0,  # mmol/day
+            'P': 0.0,  # 未使用
+            'Fats': patient.fat * patient.weight if patient.fat_included and patient.fat else 0.0  # g/day
+        }
+
+        # GIRからGlucoseの目標を計算
+        if patient.gir_included and patient.gir:
+            # GIR (mg/kg/min) × 1440 min/day = mg/kg/day
+            # mg/kg/day × kg = mg/day → g/day
+            targets['Glucose'] = (patient.gir * patient.weight * 1440) / 1000.0  # g/day
+
+        logging.debug(f"目標栄養素: {targets}")
+
+        # 使用可能な製剤のリスト（ベース製剤と添加剤）
+        available_solutions = {f"ベース製剤（{base_solution.name}）": base_solution}
+        available_solutions.update(additives)
+
+        # PuLPの最適化問題を定義
+        prob = pulp.LpProblem("TPN_Infusion_Optimization", pulp.LpMinimize)
+
+        # 各製剤の使用量（mL/day）の変数を定義
+        solution_vars = {name: pulp.LpVariable(name, lowBound=0, cat='Continuous') for name in available_solutions}
+
+        # 目的関数: 総投与量の最小化
+        prob += pulp.lpSum([var for var in solution_vars.values()]), "Total_Infusion_Volume"
+
+        # 栄養素の供給量制約
+        nutrients = ['Glucose', 'Amino Acids', 'Na', 'K', 'Cl', 'Ca', 'Mg', 'Zn', 'P', 'Fats']
+
+        for nutrient in nutrients:
+            if targets.get(nutrient, 0.0) > 0:
+                # 各栄養素の供給量を計算
+                supply = []
+                for sol_name, sol in available_solutions.items():
+                    if sol_name.startswith("ベース製剤"):
+                        supply.append(get_nutrient_contribution(nutrient, sol) * solution_vars[sol_name])
+                    else:
+                        additive = additives.get(sol_name)
+                        if additive:
+                            supply.append(get_additive_nutrient_contribution(nutrient, additive) * solution_vars[sol_name])
+                # 目標値の90%〜110%を満たすように制約
+                prob += pulp.lpSum(supply) >= 0.9 * targets[nutrient], f"{nutrient}_lower_bound"
+                prob += pulp.lpSum(supply) <= 1.1 * targets[nutrient], f"{nutrient}_upper_bound"
+
+        # 最適化を実行
+        prob_status = prob.solve()
+
+        logging.debug(f"PuLPのステータス: {pulp.LpStatus[prob.status]}")
+
+        if pulp.LpStatus[prob.status] != 'Optimal':
+            # 最適解が見つからない場合
+            logging.error("最適化問題が解けませんでした。入力値を見直してください。")
+            raise ValueError("最適化問題が解けませんでした。入力値を見直してください。")
+
+        # 結果の取得
+        detailed_mix = {name: solution_vars[name].varValue for name in solution_vars}
+        logging.debug(f"詳細配合量: {detailed_mix}")
+
+        # 栄養素の総供給量を計算
         nutrient_totals = {}
-        detailed_mix = {}
-        
-        # GIR計算
-        gir = patient.gir if patient.gir_included else None
-        if gir:
-            total_gir = gir * patient.weight * 1440 / 1000.0  # mg/kg/min -> g/day
-            calculation_steps += f"    - **GIR計算**\n        - GIR: {gir} mg/kg/min × {patient.weight} kg × 1440 min/day / 1000 = {total_gir:.2f} g/day\n"
+        for nutrient in nutrients:
+            total = 0.0
+            for sol_name, sol in available_solutions.items():
+                if sol_name.startswith("ベース製剤"):
+                    contribution = get_nutrient_contribution(nutrient, sol) * detailed_mix[sol_name]
+                else:
+                    additive = additives.get(sol_name)
+                    if additive:
+                        contribution = get_additive_nutrient_contribution(nutrient, additive) * detailed_mix[sol_name]
+                    else:
+                        contribution = 0.0
+                total += contribution
+            nutrient_totals[nutrient] = total
+
+        logging.debug(f"栄養素の総供給量: {nutrient_totals}")
+
+        # 差分の計算
+        differences = {}
+        for nutrient in nutrients:
+            target = targets.get(nutrient, 0.0)
+            actual = nutrient_totals.get(nutrient, 0.0)
+            if target > 0:
+                ratio = actual / target
+                difference = (ratio - 1) * 100  # パーセンテージ
+                differences[nutrient] = difference
+            else:
+                differences[nutrient] = 0.0  # 未使用
+
+        logging.debug(f"差分（%）: {differences}")
+
+        # 差分が200%以上かチェック
+        for nutrient, diff in differences.items():
+            if abs(diff) >= 200:
+                logging.error(f"{nutrient} の供給量が目標と200%以上異なります。目標: {targets[nutrient]}, 実測: {actual}")
+                raise ValueError(f"{nutrient} の供給量が目標と200%以上異なります。数値を見直してください。")
+
+        # 差分が10%以内かどうかチェック
+        within_10 = all(abs(diff) <= 10 for nutrient, diff in differences.items() if targets.get(nutrient, 0.0) > 0)
+        status_message = ""
+        if within_10:
+            status_message = "目標値と実測値の差が10%以内に収まりました。"
+            logging.info(status_message)
         else:
-            total_gir = 0.0
-            calculation_steps += "    - **GIR計算**: 計算対象外\n"
+            # 10%を超えている栄養素を抽出
+            over_10 = {n: d for n, d in differences.items() if targets.get(n, 0.0) > 0 and abs(d) > 10 and abs(d) <= 30}
+            if over_10:
+                status_message = "一部の栄養素が10%を超えていますが、30%以内に収まっています。注意してご確認ください。"
+                logging.warning(status_message)
+            else:
+                # 10%も30%も超えている栄養素がある場合
+                status_message = "一部の栄養素が30%を超えています。数値を見直してください。"
+                logging.warning(status_message)
 
-        # 各栄養素の目標値計算
-        nutrients = {
-            'Amino Acids': (patient.amino_acid, patient.amino_acid_included, "アミノ酸量", "g/kg/day"),
-            'Na': (patient.na, patient.na_included, "Na量", "mEq/kg/day"),
-            'K': (patient.k, patient.k_included, "K量", "mEq/kg/day"),
-            'Cl': (patient.cl, patient.cl_included, "Cl量", "mEq/kg/day"),
-            'Ca': (patient.ca, patient.ca_included, "Ca量", "mEq/kg/day"),
-            'Mg': (patient.mg, patient.mg_included, "Mg量", "mEq/kg/day"),
-            'Zn': (patient.zn, patient.zn_included, "Zn量", "mmol/kg/day"),
-            'Fats': (patient.fat, patient.fat_included, "脂肪量", "g/kg/day")
-        }
-
-        for name, (value, included, label, unit) in nutrients.items():
-            req, step = calc_requirement(value, included, label, unit, patient.weight)
-            calculation_steps += step
-            nutrient_totals[name] = req if included else 0.0
-
-        # ベース製剤の栄養素供給量計算
-        twi_volume = patient.twi * patient.weight  # mL/day
-        detailed_mix[f"ベース製剤（{base_solution.name}）"] = twi_volume
-        calculation_steps += f"2. **ベース製剤 ({base_solution.name}) 計算**\n        - ベース製剤量: {twi_volume:.2f} mL/day\n"
-
-        base_supplies = {
-            'Glucose': (base_solution.glucose_percentage / 100.0) * twi_volume,  # g/day
-            'Na': base_solution.na * twi_volume / 1000.0,  # mEq/day
-            'K': base_solution.k * twi_volume / 1000.0,  # mEq/day
-            'Cl': base_solution.cl * twi_volume / 1000.0,  # mEq/day
-            'P': base_solution.p * twi_volume / 1000.0,  # mmol/day
-            'Calories': base_solution.calories * twi_volume / 1000.0,  # kcal/day
-            'Mg': base_solution.mg * twi_volume / 1000.0,  # mEq/day
-            'Ca': base_solution.ca * twi_volume / 1000.0,  # mEq/day
-            'Zn': base_solution.zn * twi_volume / 1000.0  # mmol/day
-        }
-
-        for nutrient, supply in base_supplies.items():
-            nutrient_totals[nutrient] = supply if nutrient not in nutrient_totals else nutrient_totals[nutrient] + supply
-
-        # 必要な追加量計算と添加剤の追加
-        calculation_steps += "3. **添加剤の計算**\n"
-
-        # Na
-        if nutrient_totals['Na'] < nutrient_totals.get('Na', 0.0):
-            additional_na = nutrient_totals['Na'] - base_supplies['Na']
-            if additional_na > 0:
-                additive = additives.get("リン酸Na")
-                if additive:
-                    volume_na = required_volume(additional_na, get_safe_concentration(additive, 'na_concentration'), "リン酸Na")
-                    detailed_mix["リン酸Na"] = volume_na
-                    nutrient_totals['Na'] += additive.na_concentration * volume_na
-                    nutrient_totals['P'] += additive.p_concentration * volume_na
-                    calculation_steps += f"        - リン酸Naの追加量: {volume_na:.2f} mL/day\n"
-                else:
-                    raise ValueError("リン酸Naが添加剤に定義されていません。")
-
-        # K
-        if nutrient_totals['K'] < nutrient_totals.get('K', 0.0):
-            additional_k = nutrient_totals['K'] - base_supplies['K']
-            if additional_k > 0:
-                additive = additives.get("KCl")
-                if additive:
-                    volume_k = required_volume(additional_k, get_safe_concentration(additive, 'k_concentration'), "KCl")
-                    detailed_mix["KCl"] = volume_k
-                    nutrient_totals['K'] += additive.k_concentration * volume_k
-                    nutrient_totals['Cl'] += additive.cl_concentration * volume_k
-                    calculation_steps += f"        - KClの追加量: {volume_k:.2f} mL/day\n"
-                else:
-                    raise ValueError("KClが添加剤に定義されていません。")
-
-        # Ca
-        if nutrient_totals['Ca'] < nutrient_totals.get('Ca', 0.0):
-            additional_ca = nutrient_totals['Ca'] - base_supplies['Ca']
-            if additional_ca > 0:
-                additive = additives.get("カルチコール")
-                if additive:
-                    volume_ca = required_volume(additional_ca, get_safe_concentration(additive, 'ca_concentration'), "カルチコール")
-                    detailed_mix["カルチコール"] = volume_ca
-                    nutrient_totals['Ca'] += additive.ca_concentration * volume_ca
-                    calculation_steps += f"        - カルチコールの追加量: {volume_ca:.2f} mL/day\n"
-                else:
-                    raise ValueError("カルチコールが添加剤に定義されていません。")
-
-        # Mg
-        if nutrient_totals['Mg'] < nutrient_totals.get('Mg', 0.0):
-            additional_mg = nutrient_totals['Mg'] - base_supplies['Mg']
-            if additional_mg > 0:
-                additive = additives.get("リン酸Mg")  # リン酸Mgが存在することを前提とします
-                if additive:
-                    volume_mg = required_volume(additional_mg, get_safe_concentration(additive, 'mg_concentration'), "リン酸Mg")
-                    detailed_mix["リン酸Mg"] = volume_mg
-                    nutrient_totals['Mg'] += additive.mg_concentration * volume_mg
-                    nutrient_totals['P'] += additive.p_concentration * volume_mg
-                    calculation_steps += f"        - リン酸Mgの追加量: {volume_mg:.2f} mL/day\n"
-                else:
-                    raise ValueError("リン酸Mgが添加剤に定義されていません。")
-
-        # Zn
-        if nutrient_totals['Zn'] < nutrient_totals.get('Zn', 0.0):
-            additional_zn = nutrient_totals['Zn'] - base_supplies['Zn']
-            if additional_zn > 0:
-                additive = additives.get("プレアミンP")
-                if additive:
-                    volume_zn = required_volume(additional_zn, get_safe_concentration(additive, 'zn_concentration'), "プレアミンP")
-                    detailed_mix["プレアミンP"] = volume_zn
-                    nutrient_totals['Zn'] += additive.zn_concentration * volume_zn
-                    calculation_steps += f"        - プレアミンPの追加量: {volume_zn:.2f} mL/day\n"
-                else:
-                    raise ValueError("プレアミンPが添加剤に定義されていません。")
-
-        # Amino Acids
-        if nutrient_totals['Amino Acids'] < nutrient_totals.get('Amino Acids', 0.0):
-            additional_aa = nutrient_totals['Amino Acids'] - nutrient_totals.get('Amino Acids', 0.0)
-            if additional_aa > 0:
-                additive = additives.get("プレアミンP")
-                if additive and additive.amino_acid_concentration > 0:
-                    volume_aa = required_volume(additional_aa, additive.amino_acid_concentration, "プレアミンP")
-                    detailed_mix["プレアミンP"] += volume_aa if "プレアミンP" in detailed_mix else volume_aa
-                    nutrient_totals['Amino Acids'] += additive.amino_acid_concentration * volume_aa
-                    calculation_steps += f"        - プレアミンPの追加量: {volume_aa:.2f} mL/day\n"
-                else:
-                    raise ValueError("プレアミンPにアミノ酸濃度が定義されていません。")
-
-        # Fats
-        if nutrient_totals['Fats'] < nutrient_totals.get('Fats', 0.0):
-            additional_fat = nutrient_totals['Fats'] - nutrient_totals.get('Fats', 0.0)
-            if additional_fat > 0:
-                additive = additives.get("イントラリポス20%")
-                if additive and additive.fat_concentration > 0:
-                    volume_fat = required_volume(additional_fat, additive.fat_concentration, "イントラリポス20%")
-                    detailed_mix["イントラリポス20%"] = volume_fat
-                    nutrient_totals['Fats'] += additive.fat_concentration * volume_fat
-                    calculation_steps += f"        - イントラリポス20%の追加量: {volume_fat:.2f} mL/day\n"
-                else:
-                    raise ValueError("イントラリポス20%に脂肪濃度が定義されていません。")
-
-        # GIR用ブドウ糖液の追加
-        if total_gir > 0:
-            glucose_conc = 0.5  # 50%ブドウ糖液: 0.5 g/mL
-            glu_vol = total_gir / glucose_conc  # g/day / (g/mL) = mL/day
-            detailed_mix["50%ブドウ糖液"] = glu_vol
-            nutrient_totals['Glucose'] += glucose_conc * glu_vol
-            calculation_steps += f"        - 50%ブドウ糖液の追加量: {glu_vol:.2f} mL/day\n"
-
-        # 蒸留水の追加
-        calculated_total_volume = sum(detailed_mix.values())
-        water_volume = twi_volume - calculated_total_volume
-        if water_volume > 0:
-            detailed_mix["蒸留水"] = water_volume
-            calculation_steps += f"        - 蒸留水の追加量: {water_volume:.2f} mL/day\n"
-
-        # nutrient_units の定義
-        nutrient_units = {
-            'Na': 'mEq/day',
-            'K': 'mEq/day',
-            'Cl': 'mEq/day',
-            'Ca': 'mEq/day',
-            'Mg': 'mEq/day',
-            'Zn': 'mmol/day',
-            'P': 'mmol/day',
-            'Amino Acids': 'g/day',
-            'Fats': 'g/day',
-            'Glucose': 'g/day'
-        }
-
-        # input_amounts と input_units の定義
-        input_amounts = {}
-        input_units = {}
-        if patient.gir_included and patient.gir is not None:
-            input_amounts['GIR'] = patient.gir
-            input_units['GIR'] = "mg/kg/min"
-        if patient.amino_acid_included and patient.amino_acid is not None:
-            input_amounts['Amino Acids'] = patient.amino_acid
-            input_units['Amino Acids'] = "g/kg/day"
-        if patient.na_included and patient.na is not None:
-            input_amounts['Na'] = patient.na
-            input_units['Na'] = "mEq/kg/day"
-        if patient.k_included and patient.k is not None:
-            input_amounts['K'] = patient.k
-            input_units['K'] = "mEq/kg/day"
-        if patient.cl_included and patient.cl is not None:
-            input_amounts['Cl'] = patient.cl
-            input_units['Cl'] = "mEq/kg/day"
-        if patient.ca_included and patient.ca is not None:
-            input_amounts['Ca'] = patient.ca
-            input_units['Ca'] = "mEq/kg/day"
-        if patient.mg_included and patient.mg is not None:
-            input_amounts['Mg'] = patient.mg
-            input_units['Mg'] = "mEq/kg/day"
-        if patient.zn_included and patient.zn is not None:
-            input_amounts['Zn'] = patient.zn
-            input_units['Zn'] = "mmol/kg/day"
-        if patient.fat_included and patient.fat is not None:
-            input_amounts['Fats'] = patient.fat
-            input_units['Fats'] = "g/kg/day"
+        # 計算ステップの記録
+        calculation_steps = "### 計算ステップ\n"
+        calculation_steps += "1. **目標栄養素の設定**\n"
+        for nutrient, target in targets.items():
+            calculation_steps += f"   - {nutrient}: {target:.2f} {get_nutrient_unit(nutrient)}\n"
+        calculation_steps += "2. **最適化モデルの構築**\n"
+        calculation_steps += "   - 製剤の使用量を変数として定義。\n"
+        calculation_steps += "   - 目的関数: 総投与量の最小化。\n"
+        calculation_steps += "   - 栄養素の供給量が目標の±10%を満たすよう制約を設定。\n"
+        calculation_steps += "3. **最適化の実行**\n"
+        calculation_steps += f"   - 総投与量: {sum(detailed_mix.values()):.2f} mL/day\n"
+        calculation_steps += f"   - {status_message}\n"
 
         infusion_mix = InfusionMix(
             gir=patient.gir if patient.gir_included else None,
@@ -269,14 +220,39 @@ def calculate_infusion(patient: Patient, base_solution: Solution, additives: Dic
             detailed_mix=detailed_mix,
             calculation_steps=calculation_steps,
             nutrient_totals=nutrient_totals,
-            nutrient_units=nutrient_units,
-            input_amounts=input_amounts,
-            input_units=input_units
+            nutrient_units={
+                'Glucose': 'g/day',
+                'Amino Acids': 'g/day',
+                'Na': 'mEq/day',
+                'K': 'mEq/day',
+                'Cl': 'mEq/day',
+                'Ca': 'mEq/day',
+                'Mg': 'mEq/day',
+                'Zn': 'mmol/day',
+                'P': 'mmol/day',
+                'Fats': 'g/day'
+            },
+            input_amounts=targets,
+            input_units={
+                'Glucose': 'g/day',
+                'Amino Acids': 'g/day',
+                'Na': 'mEq/day',
+                'K': 'mEq/day',
+                'Cl': 'mEq/day',
+                'Ca': 'mEq/day',
+                'Mg': 'mEq/day',
+                'Zn': 'mmol/day',
+                'P': 'mmol/day',
+                'Fats': 'g/day'
+            }
         )
 
         logging.info("計算完了")
         return infusion_mix
 
+    except ValueError as ve:
+        logging.error(f"ValueError: {ve}")
+        raise ve
     except Exception as e:
         logging.error(f"計算中にエラーが発生しました: {e}")
         raise e
