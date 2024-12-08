@@ -18,7 +18,9 @@
         "ca": 0.0,
         "ca_unit": "mEq/L",
         "zn": 0.0,
-        "zn_unit": "mmol/L"
+        "zn_unit": "mmol/L",
+        "fat_concentration": 0.0,
+        "fat_concentration_unit": "g/mL"
     },
     {
         "name": "ソルデム3A",
@@ -39,7 +41,9 @@
         "ca": 0.0,
         "ca_unit": "mEq/L",
         "zn": 0.0,
-        "zn_unit": "mmol/L"
+        "zn_unit": "mmol/L",
+        "fat_concentration": 0.0,
+        "fat_concentration_unit": "g/mL"
     },
     {
         "name": "ソリタックス",
@@ -60,7 +64,9 @@
         "ca": 0.0,
         "ca_unit": "mEq/L",
         "zn": 0.0,
-        "zn_unit": "mmol/L"
+        "zn_unit": "mmol/L",
+        "fat_concentration": 0.0,
+        "fat_concentration_unit": "g/mL"
     },
     {
         "name": "リハビックスK2",
@@ -81,7 +87,9 @@
         "ca": 7.5,
         "ca_unit": "mEq/L",
         "zn": 10.0,
-        "zn_unit": "mmol/L"
+        "zn_unit": "mmol/L",
+        "fat_concentration": 0.0,
+        "fat_concentration_unit": "g/mL"
     },
     {
         "name": "10%ブドウ糖液",
@@ -102,7 +110,9 @@
         "ca": 0.0,
         "ca_unit": "mEq/L",
         "zn": 0.0,
-        "zn_unit": "mmol/L"
+        "zn_unit": "mmol/L",
+        "fat_concentration": 0.0,
+        "fat_concentration_unit": "g/mL"
     },
     {
         "name": "20%ブドウ糖液",
@@ -123,7 +133,9 @@
         "ca": 0.0,
         "ca_unit": "mEq/L",
         "zn": 0.0,
-        "zn_unit": "mmol/L"
+        "zn_unit": "mmol/L",
+        "fat_concentration": 0.0,
+        "fat_concentration_unit": "g/mL"
     },
     {
         "name": "50%ブドウ糖液",
@@ -144,7 +156,9 @@
         "ca": 0.0,
         "ca_unit": "mEq/L",
         "zn": 0.0,
-        "zn_unit": "mmol/L"
+        "zn_unit": "mmol/L",
+        "fat_concentration": 0.0,
+        "fat_concentration_unit": "g/mL"
     },
     {
         "name": "蒸留水",
@@ -165,48 +179,8 @@
         "ca": 0.0,
         "ca_unit": "mEq/L",
         "zn": 0.0,
-        "zn_unit": "mmol/L"
-    },
-    {
-        "name": "無電解質",
-        "glucose_percentage": 0.0,
-        "glucose_unit": "g/L",
-        "na": 0.0,
-        "na_unit": "mEq/L",
-        "k": 0.0,
-        "k_unit": "mEq/L",
-        "cl": 0.0,
-        "cl_unit": "mEq/L",
-        "p": 0.0,
-        "p_unit": "mmol/L",
-        "calories": 0.0,
-        "calories_unit": "kcal/L",
-        "mg": 0.0,
-        "mg_unit": "mEq/L",
-        "ca": 0.0,
-        "ca_unit": "mEq/L",
-        "zn": 0.0,
-        "zn_unit": "mmol/L"
-    },
-    {
-        "name": "生理食塩水",
-        "glucose_percentage": 0.0,
-        "glucose_unit": "g/L",
-        "na": 154.0,
-        "na_unit": "mEq/L",
-        "k": 0.0,
-        "k_unit": "mEq/L",
-        "cl": 154.0,
-        "cl_unit": "mEq/L",
-        "p": 0.0,
-        "p_unit": "mmol/L",
-        "calories": 0.0,
-        "calories_unit": "kcal/L",
-        "mg": 0.0,
-        "mg_unit": "mEq/L",
-        "ca": 0.0,
-        "ca_unit": "mEq/L",
-        "zn": 0.0,
-        "zn_unit": "mmol/L"
+        "zn_unit": "mmol/L",
+        "fat_concentration": 0.0,
+        "fat_concentration_unit": "g/mL"
     }
 ]

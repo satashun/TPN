@@ -1,4 +1,5 @@
 # models/solution.py
+
 from pydantic import BaseModel
 
 class Solution(BaseModel):
@@ -21,3 +22,5 @@ class Solution(BaseModel):
     ca_unit: str
     zn: float  # Zn (mmol/L)
     zn_unit: str
+    fat_concentration: float  # 脂肪濃度 (g/mL)
+    fat_concentration_unit: str  # 脂肪濃度の単位 (例: "g/mL")

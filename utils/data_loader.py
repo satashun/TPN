@@ -1,4 +1,3 @@
-# utils/data_loader.py
 import json
 import os
 from models.solution import Solution
@@ -12,6 +11,7 @@ def load_solutions(file_path='data/base_solutions.json'):
         
         with open(full_path, 'r', encoding='utf-8') as f:
             solutions_data = json.load(f)
+        # solutions_dataがリストである場合、.values()は使わず直接イテレートする
         solutions = [Solution(**sol) for sol in solutions_data]
         logging.debug("ベース製剤データのロードに成功しました。")
         return solutions
@@ -29,7 +29,8 @@ def load_additives(file_path='data/additives.json'):
         
         with open(full_path, 'r', encoding='utf-8') as f:
             additives_data = json.load(f)
-        additives = {add['name']: Additive(**add) for add in additives_data}
+        # additives_dataは辞書形式を想定
+        additives = {name: Additive(**props) for name, props in additives_data.items()}
         logging.debug("添加剤データのロードに成功しました。")
         return additives
     except FileNotFoundError:
